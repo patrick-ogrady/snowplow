@@ -16,7 +16,7 @@ _Make sure to set GOOGLE_APPLICATION_CREDENTIALS_
 https://cloud.google.com/storage/docs/reference/libraries#setting_up_authentication
 ```text
 export GOOGLE_APPLICATION_CREDENTIALS=blah
-avalance-runner backup [credential directory] [bucket]
+avalanche-runner backup [credential directory] [bucket]
 ```
 
 ## Restore + Decrypt Credentials
@@ -24,20 +24,22 @@ _Make sure to set GOOGLE_APPLICATION_CREDENTIALS_
 https://cloud.google.com/storage/docs/reference/libraries#setting_up_authentication
 ```text
 export GOOGLE_APPLICATION_CREDENTIALS=blah
-avalance-runner restore [bucket] [node ID] [credential directory]
+avalanche-runner restore [bucket] [node ID] [credential directory]
 ```
 
 ## Start Node
 _TODO: add docker cmd_
 ```text
 export PAGERDUTY_TOKEN=pagerduty_token
-avalance-runner run
+avalanche-runner run
 ```
 
 ## TODO
 - [x] license generator
 - [x] create staking key
 - [x] backup staking key
+- [ ] hardcode directory name of where keys are generated to be
+  .avalanchego/staking
 - [ ] dockerfile
 - [ ] run binary
 - [ ] page if stops or unhealthy
