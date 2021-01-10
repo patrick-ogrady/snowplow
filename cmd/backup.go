@@ -22,7 +22,6 @@ package cmd
 import (
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
 
 	"github.com/patrick-ogrady/avalanche-runner/utils"
@@ -80,48 +79,13 @@ func backupFunc(cmd *cobra.Command, args []string) error {
 
 	// ZIP Credentials
 	zipFile := fmt.Sprintf("%s.zip", printableNodeID)
-	zipCmd := exec.Command(
-		"zip",
-		"-r",
-		zipFile,
-		credentialDirectory,
-	)
-	if err := zipCmd.Run(); err != nil {
+	if err := utils.Compress(credentialDirectory, zipFile); err != nil {
 		return fmt.Errorf("%w: could not gzip credentials", err)
 	}
 
 	// Encrypt Credentials
 	encryptedFilePath := fmt.Sprintf("%s.gpg", zipFile)
-	encryptCmd := exec.Command(
-		"gpg",
-		"--symmetric",
-		"--cipher-algo",
-		"aes256",
-		"--digest-algo",
-		"sha256",
-		"--cert-digest-algo",
-		"sha256",
-		"--compress-algo",
-		"none",
-		"-z",
-		"0",
-		"--s2k-mode",
-		"3",
-		"--s2k-digest-algo",
-		"sha512",
-		"--s2k-count",
-		"65011712",
-		"--force-mdc",
-		"--no-symkey-cache",
-		"-o",
-		encryptedFilePath,
-		"-c",
-		zipFile,
-	)
-	encryptCmd.Stdin = os.Stdin
-	encryptCmd.Stdout = os.Stdout
-	encryptCmd.Stderr = os.Stderr
-	if err := encryptCmd.Run(); err != nil {
+	if err := utils.Encrypt(zipFile, encryptedFilePath); err != nil {
 		return fmt.Errorf("%w: could not encrypt credentials", err)
 	}
 

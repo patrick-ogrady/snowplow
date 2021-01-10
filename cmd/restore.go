@@ -22,7 +22,6 @@ package cmd
 import (
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
 
 	"github.com/spf13/cobra"
@@ -74,29 +73,12 @@ func restoreFunc(cmd *cobra.Command, args []string) error {
 
 	// Decrypt
 	zipFile := fmt.Sprintf("%s.zip", printableNodeID)
-	decryptCmd := exec.Command(
-		"gpg",
-		"--no-symkey-cache",
-		"-o",
-		zipFile,
-		"--decrypt",
-		encryptedFilePath,
-	)
-	decryptCmd.Stdin = os.Stdin
-	decryptCmd.Stdout = os.Stdout
-	decryptCmd.Stderr = os.Stderr
-	if err := decryptCmd.Run(); err != nil {
+	if err := utils.Decrypt(encryptedFilePath, zipFile); err != nil {
 		return fmt.Errorf("%w: could not decrypt credentials", err)
 	}
 
 	// Unzip
-	unzipCmd := exec.Command(
-		"unzip",
-		zipFile,
-		"-d",
-		credentialDirectory,
-	)
-	if err := unzipCmd.Run(); err != nil {
+	if err := utils.Decompress(zipFile, credentialDirectory); err != nil {
 		return fmt.Errorf("%w: could not unzip %s", err, zipFile)
 	}
 

@@ -37,9 +37,10 @@ avalance-runner run
 ## TODO
 - [ ] license generator
 - [ ] create staking key
+- [ ] backup staking key
+- [ ] dockerfile
 - [ ] run binary
 - [ ] page if stops or unhealthy
-- [ ] dockerfile
 - [ ] github workflow tester
 - [ ] create constants
 - [ ] add sha integrity check on backed up files
