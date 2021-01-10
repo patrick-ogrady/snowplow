@@ -78,7 +78,7 @@ func restoreFunc(cmd *cobra.Command, args []string) error {
 	}
 
 	// Unzip
-	if err := utils.Decompress(zipFile, filepath.Dir(stakingDirectory)); err != nil {
+	if err := utils.Decompress(zipFile, "."); err != nil {
 		return fmt.Errorf("%w: could not unzip %s", err, zipFile)
 	}
 
