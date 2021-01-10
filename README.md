@@ -6,6 +6,30 @@ a simple repo for creating and managing an avalanche validator
   <a href="https://github.com/patrick-ogrady/avalanche-runner/blob/master/LICENSE"><img src="https://img.shields.io/github/license/patrick-ogrady/avalanche-runner.svg" /></a>
 </p>
 
+## Create Staking Credentials
+```text
+avalanche-runner create [credential directory]
+```
+
+## Backup Credentials
+```text
+export GOOGLE_CLOUD_TOKEN=google_cloud_token
+avalance-runner backup [credential directory] [bucket]
+```
+
+## Restore Credentials
+```text
+export GOOGLE_CLOUD_TOKEN=google_cloud_token
+avalance-runner restore [bucket] [node ID] [credential directory]
+```
+
+## Start Node
+_TODO: add docker cmd_
+```text
+export PAGERDUTY_TOKEN=pagerduty_token
+avalance-runner run
+```
+
 ## TODO
 - [ ] license generator
 - [ ] create staking key

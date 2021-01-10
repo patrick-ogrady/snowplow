@@ -25,6 +25,7 @@ import (
 	"path/filepath"
 
 	"github.com/ava-labs/avalanchego/staking"
+	"github.com/ava-labs/avalanchego/utils/constants"
 	"github.com/spf13/cobra"
 
 	"github.com/patrick-ogrady/avalanche-runner/utils"
@@ -32,7 +33,7 @@ import (
 
 // createCmd represents the create command
 var createCmd = &cobra.Command{
-	Use:   "create [key directory]",
+	Use:   "create [credential directory]",
 	Short: "Generate New Staking Credentials",
 	RunE:  createFunc,
 	Args:  cobra.ExactArgs(1),
@@ -73,7 +74,11 @@ func createFunc(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return fmt.Errorf("%w: could not calculate NodeID", err)
 	}
-	fmt.Printf("NodeID: %s\n", nodeID)
+	fmt.Printf(
+		"created new credentials for %s in %s\n",
+		nodeID.PrefixedString(constants.NodeIDPrefix),
+		keyDirectory,
+	)
 
 	return nil
 }
