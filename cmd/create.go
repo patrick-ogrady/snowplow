@@ -54,13 +54,13 @@ func init() {
 
 func createFunc(cmd *cobra.Command, args []string) error {
 	// Create Paths
-	keyDirectory := args[0]
-	stakingKeyPath := filepath.Join(keyDirectory, "staker.key")
-	stakingCertPath := filepath.Join(keyDirectory, "staker.crt")
+	credentialDirectory := args[0]
+	stakingKeyPath := filepath.Join(credentialDirectory, "staker.key")
+	stakingCertPath := filepath.Join(credentialDirectory, "staker.crt")
 
-	// Check if keyDirectory is empty
-	if _, err := os.Stat(keyDirectory); !os.IsNotExist(err) {
-		return fmt.Errorf("%s is not an empty directory", keyDirectory)
+	// Check if credentialDirectory is empty
+	if _, err := os.Stat(credentialDirectory); !os.IsNotExist(err) {
+		return fmt.Errorf("%s is not an empty directory", credentialDirectory)
 	}
 
 	// Generate Staking Key
@@ -76,7 +76,7 @@ func createFunc(cmd *cobra.Command, args []string) error {
 	fmt.Printf(
 		"created new credentials for %s in %s\n",
 		utils.PrintableNodeID(nodeID),
-		keyDirectory,
+		credentialDirectory,
 	)
 
 	return nil

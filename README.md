@@ -12,14 +12,14 @@ avalanche-runner create [credential directory]
 ```
 
 ## Backup Credentials
+_Make sure to set GOOGLE_APPLICATION_CREDENTIALS_
 ```text
-export GOOGLE_CLOUD_TOKEN=google_cloud_token
+export GOOGLE_APPLICATION_CREDENTIALS=blah
 avalance-runner backup [credential directory] [bucket]
 ```
 
 ## Restore Credentials
 ```text
-export GOOGLE_CLOUD_TOKEN=google_cloud_token
 avalance-runner restore [bucket] [node ID] [credential directory]
 ```
 
