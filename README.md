@@ -6,13 +6,30 @@ a simple repo for creating and managing an avalanche validator
   <a href="https://github.com/patrick-ogrady/avalanche-runner/blob/master/LICENSE"><img src="https://img.shields.io/github/license/patrick-ogrady/avalanche-runner.svg" /></a>
 </p>
 
-## Create Staking Credentials
+## Install
+To download a binary for the latest release, run:
+```
+curl -sSfL https://raw.githubusercontent.com/patrick-ogrady/avalanche-runner/master/scripts/install.sh | sh -s
+```
+
+The binary will be installed inside the `./bin` directory (relative to where the install command was run).
+
+_Downloading binaries from the Github UI will cause permission errors on Mac._
+
+### Installing in Custom Location
+To download the binary into a specific directory, run:
+```
+curl -sSfL https://raw.githubusercontent.com/patrick-ogrady/avalanche-runner/master/scripts/install.sh | sh -s -- -b <relative directory>
+```
+
+## Usage
 _Creates in .avalanchego/staking_
+### Create Staking Credentials
 ```text
 avalanche-runner create
 ```
 
-## Encrypt + Backup Credentials
+### Encrypt + Backup Credentials
 _Make sure to set GOOGLE_APPLICATION_CREDENTIALS_
 https://cloud.google.com/storage/docs/reference/libraries#setting_up_authentication
 ```text
@@ -20,7 +37,7 @@ export GOOGLE_APPLICATION_CREDENTIALS=blah
 avalanche-runner backup [bucket]
 ```
 
-## Restore + Decrypt Credentials
+### Restore + Decrypt Credentials
 _Make sure to set GOOGLE_APPLICATION_CREDENTIALS_
 https://cloud.google.com/storage/docs/reference/libraries#setting_up_authentication
 ```text
@@ -28,11 +45,17 @@ export GOOGLE_APPLICATION_CREDENTIALS=blah
 avalanche-runner restore [bucket] [node ID]
 ```
 
-## Start Node
+### Start Node
 _TODO: add docker cmd_
 ```text
 export TWILIO_TOKEN=twilio_token
 avalanche-runner run
+```
+
+## Development
+### Compile a Release
+```text
+`make compile version=RELEASE_TAG`
 ```
 
 ## TODO
