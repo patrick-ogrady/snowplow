@@ -25,7 +25,6 @@ import (
 	"path/filepath"
 
 	"github.com/ava-labs/avalanchego/staking"
-	"github.com/ava-labs/avalanchego/utils/constants"
 	"github.com/spf13/cobra"
 
 	"github.com/patrick-ogrady/avalanche-runner/utils"
@@ -70,13 +69,13 @@ func createFunc(cmd *cobra.Command, args []string) error {
 	}
 
 	// Log NodeID
-	nodeID, err := utils.NodeID(stakingCertPath)
+	nodeID, err := utils.LoadNodeID(stakingCertPath)
 	if err != nil {
 		return fmt.Errorf("%w: could not calculate NodeID", err)
 	}
 	fmt.Printf(
 		"created new credentials for %s in %s\n",
-		nodeID.PrefixedString(constants.NodeIDPrefix),
+		utils.PrintableNodeID(nodeID),
 		keyDirectory,
 	)
 

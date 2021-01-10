@@ -26,12 +26,13 @@ import (
 	"io/ioutil"
 
 	"github.com/ava-labs/avalanchego/ids"
+	"github.com/ava-labs/avalanchego/utils/constants"
 	"github.com/ava-labs/avalanchego/utils/hashing"
 )
 
-// NodeID returns the ID associated with a staker cert.
+// LoadNodeID returns the ID associated with a staker cert.
 // Source: https://github.com/ava-labs/avalanchego/blob/e2944176f9e87562140ecd979cafebb4707578c4/node/node.go#L407-L430
-func NodeID(stakingCertPath string) (ids.ShortID, error) {
+func LoadNodeID(stakingCertPath string) (ids.ShortID, error) {
 	stakeCert, err := ioutil.ReadFile(stakingCertPath)
 	if err != nil {
 		return ids.ShortID{}, fmt.Errorf("%w: problem reading staking certificate", err)
@@ -49,4 +50,10 @@ func NodeID(stakingCertPath string) (ids.ShortID, error) {
 	}
 
 	return id, nil
+}
+
+// PrintableNodeID returns the canonical form of the NodeID
+// for delegation.
+func PrintableNodeID(nodeID ids.ShortID) string {
+	return nodeID.PrefixedString(constants.NodeIDPrefix)
 }
