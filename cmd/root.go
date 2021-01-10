@@ -24,6 +24,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"syscall"
 
 	"github.com/ava-labs/avalanchego/utils/constants"
@@ -41,6 +42,12 @@ var (
 	// stakingDirectory is the directory containing
 	// the staking key and certificate.
 	stakingDirectory = fmt.Sprintf(".%s/staking", constants.AppName)
+
+	// stakingKeyPath is filepath containing staking key.
+	stakingKeyPath = filepath.Join(stakingDirectory, stakingKeyFile)
+
+	// stakingCertPath is filepath containing staking certificate.
+	stakingCertPath = filepath.Join(stakingDirectory, stakingCertFile)
 
 	// Context is the context to use for this invocation of the cli.
 	Context context.Context

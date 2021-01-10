@@ -22,7 +22,6 @@ package cmd
 import (
 	"fmt"
 	"os"
-	"path/filepath"
 
 	"github.com/patrick-ogrady/avalanche-runner/utils"
 	"github.com/spf13/cobra"
@@ -51,9 +50,6 @@ func init() {
 }
 
 func backupFunc(cmd *cobra.Command, args []string) error {
-	stakingKeyPath := filepath.Join(stakingDirectory, stakingKeyFile)
-	stakingCertPath := filepath.Join(stakingDirectory, stakingCertFile)
-
 	// Check if stakingDirectory is empty
 	if _, err := os.Stat(stakingDirectory); os.IsNotExist(err) {
 		return fmt.Errorf("%s is an empty directory", stakingDirectory)
