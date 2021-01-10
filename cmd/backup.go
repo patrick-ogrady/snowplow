@@ -89,7 +89,7 @@ func backupFunc(cmd *cobra.Command, args []string) error {
 	}
 
 	// Backup Credentials
-	bucket := args[1]
+	bucket := args[0]
 	if err := utils.Upload(
 		Context,
 		bucket,
