@@ -11,15 +11,19 @@ a simple repo for creating and managing an avalanche validator
 avalanche-runner create [credential directory]
 ```
 
-## Backup Credentials
+## Encrypt + Backup Credentials
 _Make sure to set GOOGLE_APPLICATION_CREDENTIALS_
+https://cloud.google.com/storage/docs/reference/libraries#setting_up_authentication
 ```text
 export GOOGLE_APPLICATION_CREDENTIALS=blah
 avalance-runner backup [credential directory] [bucket]
 ```
 
-## Restore Credentials
+## Restore + Decrypt Credentials
+_Make sure to set GOOGLE_APPLICATION_CREDENTIALS_
+https://cloud.google.com/storage/docs/reference/libraries#setting_up_authentication
 ```text
+export GOOGLE_APPLICATION_CREDENTIALS=blah
 avalance-runner restore [bucket] [node ID] [credential directory]
 ```
 
@@ -37,3 +41,5 @@ avalance-runner run
 - [ ] page if stops or unhealthy
 - [ ] dockerfile
 - [ ] github workflow tester
+- [ ] create constants
+- [ ] add sha integrity check on backed up files

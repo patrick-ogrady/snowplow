@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 	"time"
 
@@ -42,5 +43,33 @@ func Upload(bucket string, name string) error {
 	return nil
 }
 
-// func Download() error {
-// }
+// Download retrieves a file from a bucket with a
+// given name.
+func Download(bucket string, name string) error {
+	ctx := context.Background()
+	client, err := storage.NewClient(ctx)
+	if err != nil {
+		return fmt.Errorf("%w: could not create new storage client", err)
+	}
+	defer client.Close()
+
+	ctx, cancel := context.WithTimeout(ctx, time.Second*50)
+	defer cancel()
+
+	rc, err := client.Bucket(bucket).Object(name).NewReader(ctx)
+	if err != nil {
+		return fmt.Errorf("Object(%q).NewReader: %v", name, err)
+	}
+	defer rc.Close()
+
+	data, err := ioutil.ReadAll(rc)
+	if err != nil {
+		return fmt.Errorf("ioutil.ReadAll: %v", err)
+	}
+
+	if err := ioutil.WriteFile(name, data, 0644); err != nil {
+		return fmt.Errorf("%w: unable to write %s to disk", err, name)
+	}
+
+	return nil
+}

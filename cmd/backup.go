@@ -77,11 +77,6 @@ func backupFunc(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%w: could not calculate NodeID", err)
 	}
 	printableNodeID := utils.PrintableNodeID(nodeID)
-	fmt.Printf(
-		"loaded credentials for %s in %s\n",
-		printableNodeID,
-		credentialDirectory,
-	)
 
 	// ZIP Credentials
 	zipFile := fmt.Sprintf("%s.zip", printableNodeID)
@@ -147,5 +142,6 @@ func backupFunc(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%w: unable to delete %s", err, encryptedFilePath)
 	}
 
+	fmt.Printf("successfully backed up %s to %s\n", printableNodeID, bucket)
 	return nil
 }

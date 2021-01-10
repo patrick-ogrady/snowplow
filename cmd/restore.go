@@ -21,23 +21,21 @@ package cmd
 
 import (
 	"fmt"
+	"os"
+	"os/exec"
+	"path/filepath"
 
 	"github.com/spf13/cobra"
+
+	"github.com/patrick-ogrady/avalanche-runner/utils"
 )
 
 // restoreCmd represents the restore command
 var restoreCmd = &cobra.Command{
-	Use:   "restore",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("restore called")
-	},
+	Use:   "restore [bucket] [node ID] [credential directory]",
+	Short: "Restore Staking Credentials from Google Cloud Storage",
+	RunE:  restoreFunc,
+	Args:  cobra.ExactArgs(3),
 }
 
 func init() {
@@ -52,4 +50,75 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// restoreCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+}
+
+func restoreFunc(cmd *cobra.Command, args []string) error {
+	credentialDirectory := args[2]
+	stakingCertPath := filepath.Join(credentialDirectory, "staker.crt")
+
+	// Check if credentialDirectory is empty
+	if _, err := os.Stat(credentialDirectory); !os.IsNotExist(err) {
+		return fmt.Errorf("%s is not empty directory", credentialDirectory)
+	}
+
+	// Download Credentials
+	bucket := args[0]
+	printableNodeID := args[1]
+	encryptedFilePath := fmt.Sprintf("%s.zip.gpg", printableNodeID)
+	if err := utils.Download(
+		bucket,
+		encryptedFilePath,
+	); err != nil {
+		return fmt.Errorf("%w: unable to download %s", err, encryptedFilePath)
+	}
+
+	// Decrypt
+	zipFile := fmt.Sprintf("%s.zip", printableNodeID)
+	decryptCmd := exec.Command(
+		"gpg",
+		"--no-symkey-cache",
+		"-o",
+		zipFile,
+		"--decrypt",
+		encryptedFilePath,
+	)
+	decryptCmd.Stdin = os.Stdin
+	decryptCmd.Stdout = os.Stdout
+	decryptCmd.Stderr = os.Stderr
+	if err := decryptCmd.Run(); err != nil {
+		return fmt.Errorf("%w: could not decrypt credentials", err)
+	}
+
+	// Unzip
+	unzipCmd := exec.Command(
+		"unzip",
+		zipFile,
+		"-d",
+		credentialDirectory,
+	)
+	if err := unzipCmd.Run(); err != nil {
+		return fmt.Errorf("%w: could not unzip %s", err, zipFile)
+	}
+
+	// Verify Credential Matches
+	nodeID, err := utils.LoadNodeID(stakingCertPath)
+	if err != nil {
+		return fmt.Errorf("%w: could not calculate recovered NodeID", err)
+	}
+	recoveredNodeID := utils.PrintableNodeID(nodeID)
+
+	if printableNodeID != recoveredNodeID {
+		return fmt.Errorf("recovered NodeID %s does not match requested NodeID %s", recoveredNodeID, printableNodeID)
+	}
+
+	// Cleanup
+	if err := os.Remove(zipFile); err != nil {
+		return fmt.Errorf("%w: unable to delete %s", err, zipFile)
+	}
+	if err := os.Remove(encryptedFilePath); err != nil {
+		return fmt.Errorf("%w: unable to delete %s", err, encryptedFilePath)
+	}
+
+	fmt.Printf("successfully restored %s to %s\n", printableNodeID, credentialDirectory)
+	return nil
 }
