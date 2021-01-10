@@ -31,10 +31,10 @@ import (
 
 // restoreCmd represents the restore command
 var restoreCmd = &cobra.Command{
-	Use:   "restore [bucket] [node ID] [credential directory]",
-	Short: "Restore Staking Credentials from Google Cloud Storage",
+	Use:   "restore [bucket] [node ID]",
+	Short: "restore staking credentials from google cloud storage",
 	RunE:  restoreFunc,
-	Args:  cobra.ExactArgs(3),
+	Args:  cobra.ExactArgs(2),
 }
 
 func init() {
@@ -52,12 +52,11 @@ func init() {
 }
 
 func restoreFunc(cmd *cobra.Command, args []string) error {
-	credentialDirectory := args[2]
-	stakingCertPath := filepath.Join(credentialDirectory, "staker.crt")
+	stakingCertPath := filepath.Join(stakingDirectory, stakingCertFile)
 
-	// Check if credentialDirectory is empty
-	if _, err := os.Stat(credentialDirectory); !os.IsNotExist(err) {
-		return fmt.Errorf("%s is not empty directory", credentialDirectory)
+	// Check if stakingDirectory is empty
+	if _, err := os.Stat(stakingDirectory); !os.IsNotExist(err) {
+		return fmt.Errorf("%s is not empty directory", stakingDirectory)
 	}
 
 	// Download Credentials
@@ -65,6 +64,7 @@ func restoreFunc(cmd *cobra.Command, args []string) error {
 	printableNodeID := args[1]
 	encryptedFilePath := fmt.Sprintf("%s.zip.gpg", printableNodeID)
 	if err := utils.Download(
+		Context,
 		bucket,
 		encryptedFilePath,
 	); err != nil {
@@ -78,7 +78,7 @@ func restoreFunc(cmd *cobra.Command, args []string) error {
 	}
 
 	// Unzip
-	if err := utils.Decompress(zipFile, credentialDirectory); err != nil {
+	if err := utils.Decompress(zipFile, filepath.Dir(stakingDirectory)); err != nil {
 		return fmt.Errorf("%w: could not unzip %s", err, zipFile)
 	}
 
@@ -88,7 +88,6 @@ func restoreFunc(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%w: could not calculate recovered NodeID", err)
 	}
 	recoveredNodeID := utils.PrintableNodeID(nodeID)
-
 	if printableNodeID != recoveredNodeID {
 		return fmt.Errorf("recovered NodeID %s does not match requested NodeID %s", recoveredNodeID, printableNodeID)
 	}
@@ -101,6 +100,6 @@ func restoreFunc(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%w: unable to delete %s", err, encryptedFilePath)
 	}
 
-	fmt.Printf("successfully restored %s to %s\n", printableNodeID, credentialDirectory)
+	fmt.Printf("successfully restored %s to %s\n", printableNodeID, stakingDirectory)
 	return nil
 }

@@ -30,9 +30,9 @@ import (
 
 // backupCmd represents the backup command
 var backupCmd = &cobra.Command{
-	Use:   "backup [credential directory] [bucket]",
-	Short: "Backup Staking Credentials to Google Cloud Storage",
-	Args:  cobra.ExactArgs(2),
+	Use:   "backup [bucket]",
+	Short: "backup staking credentials to google cloud storage",
+	Args:  cobra.ExactArgs(1),
 	RunE:  backupFunc,
 }
 
@@ -51,13 +51,12 @@ func init() {
 }
 
 func backupFunc(cmd *cobra.Command, args []string) error {
-	credentialDirectory := args[0]
-	stakingKeyPath := filepath.Join(credentialDirectory, "staker.key")
-	stakingCertPath := filepath.Join(credentialDirectory, "staker.crt")
+	stakingKeyPath := filepath.Join(stakingDirectory, stakingKeyFile)
+	stakingCertPath := filepath.Join(stakingDirectory, stakingCertFile)
 
-	// Check if credentialDirectory is empty
-	if _, err := os.Stat(credentialDirectory); os.IsNotExist(err) {
-		return fmt.Errorf("%s is an empty directory", credentialDirectory)
+	// Check if stakingDirectory is empty
+	if _, err := os.Stat(stakingDirectory); os.IsNotExist(err) {
+		return fmt.Errorf("%s is an empty directory", stakingDirectory)
 	}
 
 	// Check if staking key exists
@@ -79,7 +78,7 @@ func backupFunc(cmd *cobra.Command, args []string) error {
 
 	// ZIP Credentials
 	zipFile := fmt.Sprintf("%s.zip", printableNodeID)
-	if err := utils.Compress(credentialDirectory, zipFile); err != nil {
+	if err := utils.Compress(stakingDirectory, zipFile); err != nil {
 		return fmt.Errorf("%w: could not gzip credentials", err)
 	}
 
@@ -92,6 +91,7 @@ func backupFunc(cmd *cobra.Command, args []string) error {
 	// Backup Credentials
 	bucket := args[1]
 	if err := utils.Upload(
+		Context,
 		bucket,
 		encryptedFilePath,
 	); err != nil {

@@ -2,4 +2,4 @@
 *.json
 *.zip
 *.gpg
-keys
+.avalanchego

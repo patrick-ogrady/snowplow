@@ -20,12 +20,37 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
-	"github.com/spf13/cobra"
 	"os"
+	"os/signal"
+	"syscall"
 
+	"github.com/ava-labs/avalanchego/utils/constants"
 	homedir "github.com/mitchellh/go-homedir"
+	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+)
+
+const (
+	stakingKeyFile  = "staker.key"
+	stakingCertFile = "staker.crt"
+)
+
+var (
+	// stakingDirectory is the directory containing
+	// the staking key and certificate.
+	stakingDirectory = fmt.Sprintf(".%s/staking", constants.AppName)
+
+	// Context is the context to use for this invocation of the cli.
+	Context context.Context
+
+	// Cancel is the context.CancelFunc for this invocation of the cli.
+	Cancel context.CancelFunc
+
+	// SignalReceived is set to true when a signal causes us to exit. This makes
+	// determining the error message to show on exit much more easy.
+	SignalReceived = false
 )
 
 var cfgFile string
@@ -61,7 +86,7 @@ func init() {
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
 
-	// rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.avalanche-runner.yaml)")
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.avalanche-runner.yaml)")
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
@@ -70,6 +95,11 @@ func init() {
 
 // initConfig reads in config file and ENV variables if set.
 func initConfig() {
+	// Setup signal handling for context
+	ctx := context.Background()
+	Context, Cancel = context.WithCancel(ctx)
+	go handleSignals([]context.CancelFunc{Cancel})
+
 	if cfgFile != "" {
 		// Use config file from the flag.
 		viper.SetConfigFile(cfgFile)
@@ -92,4 +122,20 @@ func initConfig() {
 	if err := viper.ReadInConfig(); err == nil {
 		fmt.Println("Using config file:", viper.ConfigFileUsed())
 	}
+}
+
+// handleSignals handles OS signals so we can ensure we close database
+// correctly. We call multiple sigListeners because we
+// may need to cancel more than 1 context.
+func handleSignals(listeners []context.CancelFunc) {
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+	go func() {
+		sig := <-sigs
+		fmt.Printf("received signal: %s", sig)
+		SignalReceived = true
+		for _, listener := range listeners {
+			listener()
+		}
+	}()
 }

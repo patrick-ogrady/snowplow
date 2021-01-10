@@ -32,10 +32,9 @@ import (
 
 // createCmd represents the create command
 var createCmd = &cobra.Command{
-	Use:   "create [credential directory]",
-	Short: "Generate New Staking Credentials",
+	Use:   "create",
+	Short: "generate new staking credentials",
 	RunE:  createFunc,
-	Args:  cobra.ExactArgs(1),
 }
 
 func init() {
@@ -54,13 +53,12 @@ func init() {
 
 func createFunc(cmd *cobra.Command, args []string) error {
 	// Create Paths
-	credentialDirectory := args[0]
-	stakingKeyPath := filepath.Join(credentialDirectory, "staker.key")
-	stakingCertPath := filepath.Join(credentialDirectory, "staker.crt")
+	stakingKeyPath := filepath.Join(stakingDirectory, stakingKeyFile)
+	stakingCertPath := filepath.Join(stakingDirectory, stakingCertFile)
 
 	// Check if credentialDirectory is empty
-	if _, err := os.Stat(credentialDirectory); !os.IsNotExist(err) {
-		return fmt.Errorf("%s is not an empty directory", credentialDirectory)
+	if _, err := os.Stat(stakingDirectory); !os.IsNotExist(err) {
+		return fmt.Errorf("%s is not an empty directory", stakingDirectory)
 	}
 
 	// Generate Staking Key
@@ -76,7 +74,7 @@ func createFunc(cmd *cobra.Command, args []string) error {
 	fmt.Printf(
 		"created new credentials for %s in %s\n",
 		utils.PrintableNodeID(nodeID),
-		credentialDirectory,
+		stakingDirectory,
 	)
 
 	return nil

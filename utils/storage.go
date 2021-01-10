@@ -32,8 +32,7 @@ import (
 
 // Upload puts a specified file in a bucket with
 // a given name.
-func Upload(bucket string, name string) error {
-	ctx := context.Background()
+func Upload(ctx context.Context, bucket string, name string) error {
 	client, err := storage.NewClient(ctx)
 	if err != nil {
 		return fmt.Errorf("%w: could not create new storage client", err)
@@ -64,8 +63,7 @@ func Upload(bucket string, name string) error {
 
 // Download retrieves a file from a bucket with a
 // given name.
-func Download(bucket string, name string) error {
-	ctx := context.Background()
+func Download(ctx context.Context, bucket string, name string) error {
 	client, err := storage.NewClient(ctx)
 	if err != nil {
 		return fmt.Errorf("%w: could not create new storage client", err)
