@@ -38,17 +38,28 @@ const (
 	stakingCertFile = "staker.crt"
 )
 
+// Source: https://github.com/ava-labs/avalanchego/blob/e2944176f9e87562140ecd979cafebb4707578c4/main/params.go#L44-L53
 var (
+	// homeDir is the $HOME directory to use
+	// when creating the .avalanchego folder.
+	homeDir = os.ExpandEnv("$HOME")
+
 	// stakingDirectory is the directory containing
 	// the staking key and certificate.
-	stakingDirectory = fmt.Sprintf(".%s/staking", constants.AppName)
+	stakingDirectory = filepath.Join(
+		homeDir,
+		fmt.Sprintf(".%s", constants.AppName),
+		"staking",
+	)
 
 	// stakingKeyPath is filepath containing staking key.
 	stakingKeyPath = filepath.Join(stakingDirectory, stakingKeyFile)
 
 	// stakingCertPath is filepath containing staking certificate.
 	stakingCertPath = filepath.Join(stakingDirectory, stakingCertFile)
+)
 
+var (
 	// Context is the context to use for this invocation of the cli.
 	Context context.Context
 
@@ -139,7 +150,7 @@ func handleSignals(listeners []context.CancelFunc) {
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 	go func() {
 		sig := <-sigs
-		fmt.Printf("received signal: %s", sig)
+		fmt.Printf("received signal: %s\n", sig)
 		SignalReceived = true
 		for _, listener := range listeners {
 			listener()
