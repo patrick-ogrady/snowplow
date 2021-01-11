@@ -64,10 +64,10 @@ avalanche-runner run
 - [x] backup staking key
 - [x] hardcode directory name of where keys are generated to be
   .avalanchego/staking
-- [ ] dockerfile
-- [ ] run binary
+- [x] dockerfile
+- [x] run binary
 - [ ] page if stops or unhealthy (only once bootstrapped has gone true)
 - [ ] github workflow tester
 - [ ] add sha integrity check on backed up files
-- [ ] generate binaries
-- [ ] setup new node script (install docker, etc)
+- [ ] generate and host cli binaries
+- [ ] setup new host script (install docker, etc)
