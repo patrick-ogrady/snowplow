@@ -3,6 +3,7 @@
 ADDLICENSE_CMD=go run github.com/google/addlicense
 ADDLICENCE_SCRIPT=${ADDLICENSE_CMD} -c "patrick-ogrady" -l "mit" -v
 
+WORKDIR             ?= $(shell pwd)
 GIT_COMMIT          ?= $(shell git rev-parse HEAD)
 DOCKER_ORG          ?= patrick-ogrady
 PROJECT             ?= avalanche-runner
@@ -50,7 +51,7 @@ docker-build-local:
 run-mainnet:
 	docker run \
 		-d \
-		-v ~/.avalanchego:/root/.avalanchego \
+		-v ${WORKDIR}/.avalanchego:/root/.avalanchego \
 		-p 9650:9650 \
 		-p 9651:9651 \
 		${DOCKER_TAG}

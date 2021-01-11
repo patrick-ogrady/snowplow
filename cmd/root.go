@@ -47,7 +47,6 @@ var (
 	// stakingDirectory is the directory containing
 	// the staking key and certificate.
 	stakingDirectory = filepath.Join(
-		homeDir,
 		fmt.Sprintf(".%s", constants.AppName),
 		"staking",
 	)

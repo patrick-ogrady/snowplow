@@ -23,7 +23,7 @@ curl -sSfL https://raw.githubusercontent.com/patrick-ogrady/avalanche-runner/mas
 ```
 
 ## Usage
-_Creates in .avalanchego/staking_
+_Creates in .avalanchego/staking (relative directory)_
 ### Create Staking Credentials
 ```text
 avalanche-runner create

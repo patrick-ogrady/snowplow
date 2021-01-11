@@ -22,6 +22,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/spf13/cobra"
 
@@ -50,6 +51,11 @@ func init() {
 }
 
 func runFunc(cmd *cobra.Command, args []string) error {
+	// Modify staking paths (avalanchego binary assumes all in homeDir)
+	stakingDirectory = filepath.Join(homeDir, stakingDirectory)
+	stakingKeyPath = filepath.Join(homeDir, stakingKeyPath)
+	stakingCertPath = filepath.Join(homeDir, stakingCertPath)
+
 	// Check if stakingDirectory is empty
 	if _, err := os.Stat(stakingDirectory); os.IsNotExist(err) {
 		return fmt.Errorf("%s is an empty directory", stakingDirectory)
