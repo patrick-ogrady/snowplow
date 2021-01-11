@@ -17,6 +17,8 @@
 # IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+# Inspired By: https://github.com/figment-networks/avalanche-rosetta
+
 # ------------------------------------------------------------------------------
 # Build avalanche
 # ------------------------------------------------------------------------------
@@ -84,7 +86,7 @@ COPY --from=runner \
 
 # Install config
 COPY --from=runner \
-  /go/src/github.com/patrick-ogrady/avalance-runner/assets/avalanchego-config.json \
+  /go/src/github.com/patrick-ogrady/avalanche-runner/assets/avalanchego-config.json \
   /app/avalanchego-config.json
 
 EXPOSE 9650
