@@ -66,6 +66,7 @@ avalanche-runner run
   .avalanchego/staking
 - [x] dockerfile
 - [x] run binary
+- [ ] Config file with phone number + twilio tokens
 - [ ] page if stops or unhealthy (only once bootstrapped has gone true)
 - [ ] github workflow tester
 - [ ] add sha integrity check on backed up files
