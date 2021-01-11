@@ -14,7 +14,7 @@ AVALANCHE_VERSION   ?= v1.1.2
 RUNNER_VERSION 			?= v0.0.1
 
 build:
-	go build -o ./avalanche-runner ./cmd
+	go build
 
 install:
 	go install ./...

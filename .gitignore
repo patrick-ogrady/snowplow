@@ -2,3 +2,4 @@
 *.zip
 *.gpg
 .avalanchego
+avalanche-runner
