@@ -19,8 +19,13 @@ const (
 func CheckHealth(
 	ctx context.Context,
 	interval time.Duration,
-	notifier *Notifier,
-) error {
+) {
+	notifier, err := NewNotifier()
+	if err != nil {
+		fmt.Printf("not initializing notifier: %s\n", err.Error())
+		return
+	}
+
 	healthClient := health.NewClient(nodeEndpoint, timeout)
 	infoClient := info.NewClient(nodeEndpoint, timeout)
 
@@ -73,6 +78,4 @@ func CheckHealth(
 			notifier.Info("all chains bootstapped")
 		}
 	}
-
-	return ctx.Err()
 }

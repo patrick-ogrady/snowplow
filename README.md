@@ -1,5 +1,5 @@
 # Avalanche Runner
-a simple repo for creating and managing an avalanche validator
+_quick and easy tool for running an avalanche node responsibly_
 
 <p align="center">
   <a href="https://goreportcard.com/report/github.com/patrick-ogrady/avalanche-runner"><img src="https://goreportcard.com/badge/github.com/patrick-ogrady/avalanche-runner" /></a>

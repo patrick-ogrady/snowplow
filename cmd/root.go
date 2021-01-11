@@ -28,7 +28,6 @@ import (
 	"syscall"
 
 	"github.com/ava-labs/avalanchego/utils/constants"
-	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -75,13 +74,7 @@ var cfgFile string
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "avalanche-runner",
-	Short: "A brief description of your application",
-	Long: `A longer description that spans multiple lines and likely contains
-examples and usage of using your application. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "quick and easy tool for running an avalanche node responsibly",
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
 	//	Run: func(cmd *cobra.Command, args []string) { },
@@ -103,7 +96,7 @@ func init() {
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
 
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.avalanche-runner.yaml)")
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.avalanchego/.avalanche-runner.yaml)")
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
@@ -121,15 +114,8 @@ func initConfig() {
 		// Use config file from the flag.
 		viper.SetConfigFile(cfgFile)
 	} else {
-		// Find home directory.
-		home, err := homedir.Dir()
-		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
-		}
-
 		// Search config in home directory with name ".avalanche-runner" (without extension).
-		viper.AddConfigPath(home)
+		viper.AddConfigPath(filepath.Join(homeDir, ".avalanchego"))
 		viper.SetConfigName(".avalanche-runner")
 	}
 

@@ -23,11 +23,14 @@ import (
 	"context"
 	"os"
 	"os/exec"
+	"time"
 )
 
 const (
 	avalanchegoBin  = "/app/avalanchego"
 	avalancheConfig = "/app/avalanchego-config.json"
+
+	healthCheckInterval = time.Second * 10
 )
 
 // Run starts an avalanchego node.
@@ -48,6 +51,10 @@ func Run(ctx context.Context) error {
 				cmd.Process.Signal(os.Interrupt)
 			}
 		}
+	}()
+
+	go func() {
+		CheckHealth(ctx, healthCheckInterval)
 	}()
 
 	return cmd.Run()

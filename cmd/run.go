@@ -73,11 +73,4 @@ func runFunc(cmd *cobra.Command, args []string) error {
 
 	// Run avalanchego
 	return utils.Run(Context)
-
-	// Run health checker
-	// https://docs.avax.network/build/avalanchego-apis/health-api#health-getliveness
-
-	// Message Twilio
-
-	// return nil
 }
