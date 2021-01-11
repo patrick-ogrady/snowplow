@@ -40,6 +40,7 @@ func CheckHealth(
 				notifier.Alert(fmt.Sprintf("health check failed: %s", err.Error()))
 			}
 
+			fmt.Printf("received error while checking liveness: %s\n", err.Error())
 			continue
 		}
 
@@ -50,6 +51,9 @@ func CheckHealth(
 		} else if !healthy && thisHealthy.Healthy {
 			healthy = true
 			notifier.Info("node now healthy")
+		} else if !healthy && !thisHealthy.Healthy {
+			fmt.Println("node not yet healthy")
+			continue
 		}
 
 		if bootstrapped {
