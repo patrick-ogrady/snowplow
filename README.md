@@ -66,7 +66,7 @@ avalanche-runner run
   .avalanchego/staking
 - [ ] dockerfile
 - [ ] run binary
-- [ ] page if stops or unhealthy
+- [ ] page if stops or unhealthy (only once bootstrapped has gone true)
 - [ ] github workflow tester
 - [ ] add sha integrity check on backed up files
 - [ ] generate binaries
