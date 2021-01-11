@@ -92,4 +92,4 @@ COPY --from=runner \
 EXPOSE 9650
 EXPOSE 9651
 
-ENTRYPOINT ["/app/avalanche-runner run"]
+ENTRYPOINT ["/app/avalanche-runner", "run"]

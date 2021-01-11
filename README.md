@@ -70,3 +70,4 @@ avalanche-runner run
 - [ ] github workflow tester
 - [ ] add sha integrity check on backed up files
 - [ ] generate binaries
+- [ ] setup new node script (install docker, etc)
