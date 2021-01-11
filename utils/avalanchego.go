@@ -44,6 +44,8 @@ func Run(ctx context.Context, nodeID string) error {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
+	// Send interrupt signal if context is
+	// done
 	go func() {
 		select {
 		case <-ctx.Done():
@@ -53,7 +55,9 @@ func Run(ctx context.Context, nodeID string) error {
 		}
 	}()
 
-	go CheckHealth(ctx, nodeID, healthCheckInterval)
+	// Periodically check health and send
+	// notifications as needed
+	go MonitorHealth(ctx, nodeID, healthCheckInterval)
 
 	return cmd.Run()
 }

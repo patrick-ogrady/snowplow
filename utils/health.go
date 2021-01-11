@@ -33,9 +33,9 @@ const (
 	timeout      = time.Second * 10
 )
 
-// CheckHealth checks a node's health
+// MonitorHealth checks a node's health
 // each interval.
-func CheckHealth(
+func MonitorHealth(
 	ctx context.Context,
 	nodeID string,
 	interval time.Duration,
