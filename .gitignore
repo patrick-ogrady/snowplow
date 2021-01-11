@@ -1,5 +1,5 @@
 *.swp
-*.json
 *.zip
 *.gpg
 .avalanchego
+avalanche-runner

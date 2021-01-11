@@ -23,7 +23,7 @@ curl -sSfL https://raw.githubusercontent.com/patrick-ogrady/avalanche-runner/mas
 ```
 
 ## Usage
-_Creates in .avalanchego/staking_
+_Creates in .avalanchego/staking (relative directory)_
 ### Create Staking Credentials
 ```text
 avalanche-runner create
@@ -64,9 +64,10 @@ avalanche-runner run
 - [x] backup staking key
 - [x] hardcode directory name of where keys are generated to be
   .avalanchego/staking
-- [ ] dockerfile
-- [ ] run binary
-- [ ] page if stops or unhealthy
+- [x] dockerfile
+- [x] run binary
+- [ ] page if stops or unhealthy (only once bootstrapped has gone true)
 - [ ] github workflow tester
 - [ ] add sha integrity check on backed up files
-- [ ] generate binaries
+- [ ] generate and host cli binaries
+- [ ] setup new host script (install docker, etc)

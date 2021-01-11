@@ -1,0 +1,10 @@
+{
+  "network-id": "mainnet",
+  "http-host": "0.0.0.0",
+  "api-keystore-enabled": false,
+  "api-admin-enabled": false,
+  "api-ipcs-enabled": false,
+  "api-metrics-enabled": false,
+  "api-health-enabled": true,
+  "api-auth-required": false
+}
