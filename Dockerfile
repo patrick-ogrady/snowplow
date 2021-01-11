@@ -37,7 +37,7 @@ RUN git checkout $AVALANCHE_VERSION && \
 # ------------------------------------------------------------------------------
 FROM golang:1.15 AS runner
 
-ARG ROSETTA_VERSION
+ARG RUNNER_VERSION
 
 RUN git clone https://github.com/patrick-ogrady/avalanche-runner.git \
   /go/src/github.com/patrick-ogrady/avalanche-runner
@@ -57,7 +57,7 @@ RUN \
   make build
 
 # ------------------------------------------------------------------------------
-# Target container for running the node and rosetta server
+# Target container for running the node
 # ------------------------------------------------------------------------------
 FROM ubuntu:18.04
 
