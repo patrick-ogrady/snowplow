@@ -71,6 +71,11 @@ func runFunc(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("staking certificate at %s does not exist", stakingCertPath)
 	}
 
+	nodeID, err := utils.LoadNodeID(stakingCertPath)
+	if err != nil {
+		return fmt.Errorf("%w: could not calculate NodeID", err)
+	}
+
 	// Run avalanchego
-	return utils.Run(Context)
+	return utils.Run(Context, utils.PrintableNodeID(nodeID))
 }

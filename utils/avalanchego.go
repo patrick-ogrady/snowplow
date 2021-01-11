@@ -34,7 +34,7 @@ const (
 )
 
 // Run starts an avalanchego node.
-func Run(ctx context.Context) error {
+func Run(ctx context.Context, nodeID string) error {
 	cmd := exec.Command(
 		avalanchegoBin,
 		"--config-file",
@@ -53,9 +53,7 @@ func Run(ctx context.Context) error {
 		}
 	}()
 
-	go func() {
-		CheckHealth(ctx, healthCheckInterval)
-	}()
+	go CheckHealth(ctx, nodeID, healthCheckInterval)
 
 	return cmd.Run()
 }

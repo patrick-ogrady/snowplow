@@ -14,10 +14,11 @@ type Notifier struct {
 	client    *twilio.Client
 	sender    string
 	recipient string
+	nodeID    string
 }
 
 // NewNotifier ...
-func NewNotifier() (*Notifier, error) {
+func NewNotifier(nodeID string) (*Notifier, error) {
 	if len(viper.ConfigFileUsed()) == 0 {
 		return nil, errors.New("config file at $HOME/.avalanchego/.avalanche-runner.yaml is missing")
 	}
@@ -46,6 +47,7 @@ func NewNotifier() (*Notifier, error) {
 		client:    twilio.NewClient(accountSid, authToken, nil),
 		sender:    sender,
 		recipient: recipient,
+		nodeID:    nodeID,
 	}, nil
 }
 
@@ -55,7 +57,7 @@ func (n *Notifier) Info(message string) {
 	_, err := n.client.Messages.SendMessage(
 		n.sender,
 		n.recipient,
-		fmt.Sprintf("[INFO]: %s", message),
+		fmt.Sprintf("[INFO](%s): %s", n.nodeID, message),
 		nil,
 	)
 	if err != nil {
@@ -69,7 +71,7 @@ func (n *Notifier) Alert(message string) {
 	_, err := n.client.Messages.SendMessage(
 		n.sender,
 		n.recipient,
-		fmt.Sprintf("[ALERT]: %s", message),
+		fmt.Sprintf("[ALERT](%s): %s", n.nodeID, message),
 		nil,
 	)
 	if err != nil {

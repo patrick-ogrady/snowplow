@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	nodeEndpoint = "http://localhost:9560"
+	nodeEndpoint = "http://localhost:9650"
 	timeout      = time.Second * 10
 )
 
@@ -18,9 +18,10 @@ const (
 // each interval.
 func CheckHealth(
 	ctx context.Context,
+	nodeID string,
 	interval time.Duration,
 ) {
-	notifier, err := NewNotifier()
+	notifier, err := NewNotifier(nodeID)
 	if err != nil {
 		fmt.Printf("not initializing notifier: %s\n", err.Error())
 		return
