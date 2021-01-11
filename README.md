@@ -41,6 +41,16 @@ _TODO: add docker cmd_
 make run-mainnet
 ```
 
+#### Twilio Notifications
+_add .avalanchego/.avalanche-runner.yaml_
+```yaml
+twilio:
+  accountSid: "<accountSid>"
+  authToken: "<authToken>"
+  sender: "<sender phone number>"
+  recipient: "<your phone number>"
+```
+
 ## TODO
 - [x] license generator
 - [x] create staking key

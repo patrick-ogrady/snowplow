@@ -42,15 +42,17 @@ func CheckHealth(
 ) {
 	notifier, err := NewNotifier(nodeID)
 	if err != nil {
-		fmt.Printf("not initializing notifier: %s\n", err.Error())
+		fmt.Printf("[NOTIFIER] not initializing: %s\n", err.Error())
 		return
 	}
+
+	fmt.Printf("[NOTIFIER] initialized for %s\n", nodeID)
 
 	healthClient := health.NewClient(nodeEndpoint, timeout)
 	infoClient := info.NewClient(nodeEndpoint, timeout)
 
 	var healthy, bootstrapped bool
-	for ctx.Err() != nil {
+	for ctx.Err() == nil {
 		time.Sleep(interval)
 
 		thisHealthy, err := healthClient.GetLiveness()
@@ -59,7 +61,7 @@ func CheckHealth(
 				notifier.Alert(fmt.Sprintf("health check failed: %s", err.Error()))
 			}
 
-			fmt.Printf("received error while checking liveness: %s\n", err.Error())
+			fmt.Printf("[NOTIFIER] received error while checking liveness: %s\n", err.Error())
 			continue
 		}
 
@@ -71,7 +73,7 @@ func CheckHealth(
 			healthy = true
 			notifier.Info("node now healthy")
 		} else if !healthy && !thisHealthy.Healthy {
-			fmt.Println("node not yet healthy")
+			fmt.Println("[NOTIFIER] node not yet healthy")
 			continue
 		}
 
