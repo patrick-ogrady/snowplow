@@ -1,7 +1,9 @@
-.PHONY: build install add-license check-license compile docker-build docker-build-local run-mainnet
+.PHONY: build install add-license check-license compile docker-build docker-build-local run-mainnet mocks lint test
 
 ADDLICENSE_CMD=go run github.com/google/addlicense
 ADDLICENCE_SCRIPT=${ADDLICENSE_CMD} -c "patrick-ogrady" -l "mit" -v
+LINT_SETTINGS=golint,misspell,gocyclo,gocritic,whitespace,goconst,gocognit,bodyclose,unconvert,lll,unparam,gomnd
+GOLINES_CMD=go run github.com/segmentio/golines
 
 WORKDIR             ?= $(shell pwd)
 GIT_COMMIT          ?= $(shell git rev-parse HEAD)
@@ -52,3 +54,17 @@ run-mainnet:
 		-p 9650:9650 \
 		-p 9651:9651 \
 		${DOCKER_TAG}
+
+mocks:
+	rm -rf mocks;
+	mockery --disable-version-string --dir pkg/health --all --case underscore --outpkg health --output mocks/pkg/health;
+
+lint:
+	golangci-lint run --timeout 2m0s -v -E ${LINT_SETTINGS}
+
+test:
+	go test -v ./pkg/...
+
+shorten-lines:
+	${GOLINES_CMD} -w --shorten-comments .;
+	go mod tidy;

@@ -36,7 +36,7 @@ var restoreCmd = &cobra.Command{
 	Use:   "restore [bucket] [node ID]",
 	Short: "restore staking credentials from google cloud storage",
 	RunE:  restoreFunc,
-	Args:  cobra.ExactArgs(2),
+	Args:  cobra.ExactArgs(2), // nolint:gomnd
 }
 
 func init() {
@@ -89,7 +89,11 @@ func restoreFunc(cmd *cobra.Command, args []string) error {
 	}
 	recoveredNodeID := utils.PrintableNodeID(nodeID)
 	if printableNodeID != recoveredNodeID {
-		return fmt.Errorf("recovered NodeID %s does not match requested NodeID %s", recoveredNodeID, printableNodeID)
+		return fmt.Errorf(
+			"recovered NodeID %s does not match requested NodeID %s",
+			recoveredNodeID,
+			printableNodeID,
+		)
 	}
 
 	// Cleanup

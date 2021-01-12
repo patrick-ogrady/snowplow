@@ -40,7 +40,8 @@ type Client struct {
 }
 
 // NewClient ...
-// Inspired by: https://github.com/ava-labs/avalanchego/blob/8be88a342fced5522cd503b72f49aae450eea863/api/health/client.go
+// Inspired by:
+// https://github.com/ava-labs/avalanchego/blob/8be88a342fced5522cd503b72f49aae450eea863/api/health/client.go
 func NewClient() *Client {
 	return &Client{
 		healthRequester: rpc.NewEndpointRequester(nodeEndpoint, "/ext/health", "health", timeout),

@@ -39,7 +39,9 @@ type Notifier struct {
 // NewNotifier ...
 func NewNotifier(nodeID string) (*Notifier, error) {
 	if len(viper.ConfigFileUsed()) == 0 {
-		return nil, errors.New("config file at $HOME/.avalanchego/.avalanche-runner.yaml is missing")
+		return nil, errors.New(
+			"config file at $HOME/.avalanchego/.avalanche-runner.yaml is missing",
+		)
 	}
 
 	accountSid := viper.GetString("twilio.accountSid")

@@ -30,6 +30,10 @@ import (
 	"cloud.google.com/go/storage"
 )
 
+const (
+	defaultTimeout = 50 * time.Second
+)
+
 // Upload puts a specified file in a bucket with
 // a given name.
 func Upload(ctx context.Context, bucket string, name string) error {
@@ -46,7 +50,7 @@ func Upload(ctx context.Context, bucket string, name string) error {
 	}
 	defer f.Close()
 
-	ctx, cancel := context.WithTimeout(ctx, time.Second*50)
+	ctx, cancel := context.WithTimeout(ctx, defaultTimeout)
 	defer cancel()
 
 	// Upload an object with storage.Writer.
@@ -70,7 +74,7 @@ func Download(ctx context.Context, bucket string, name string) error {
 	}
 	defer client.Close()
 
-	ctx, cancel := context.WithTimeout(ctx, time.Second*50)
+	ctx, cancel := context.WithTimeout(ctx, defaultTimeout)
 	defer cancel()
 
 	rc, err := client.Bucket(bucket).Object(name).NewReader(ctx)
