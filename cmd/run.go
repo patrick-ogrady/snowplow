@@ -26,9 +26,9 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/patrick-ogrady/avalanche-runner/pkg/avalanchego"
-	"github.com/patrick-ogrady/avalanche-runner/pkg/notifier"
-	"github.com/patrick-ogrady/avalanche-runner/pkg/utils"
+	"github.com/patrick-ogrady/snowplow/pkg/avalanchego"
+	"github.com/patrick-ogrady/snowplow/pkg/notifier"
+	"github.com/patrick-ogrady/snowplow/pkg/utils"
 )
 
 // runCmd represents the run command

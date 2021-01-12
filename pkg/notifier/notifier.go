@@ -40,7 +40,7 @@ type Notifier struct {
 func NewNotifier(nodeID string) (*Notifier, error) {
 	if len(viper.ConfigFileUsed()) == 0 {
 		return nil, errors.New(
-			"config file at $HOME/.avalanchego/.avalanche-runner.yaml is missing",
+			"config file at $HOME/.avalanchego/.snowplow.yaml is missing",
 		)
 	}
 
