@@ -61,7 +61,8 @@ twilio:
 
 ## TODO
 * write tests for health with interfaces + mockery
-* setup new host on google cloud script (install docker, etc)
+* change name to snowplow
 * add linting in makefile
+* setup new host on google cloud script (install docker, etc)
 * github workflow tester
 * add sha integrity check on backed up files

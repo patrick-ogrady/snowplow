@@ -37,6 +37,34 @@ type Client interface {
 	IsBootstrapped(chain string) (bool, error)
 }
 
+// checkBootstrapped loops on the IsBootstrapped
+// check for a particular chain.
+func checkBootstrapped(
+	ctx context.Context,
+	interval time.Duration,
+	chain string,
+	notifier Notifier,
+	client Client,
+) {
+	start := time.Now()
+	for ctx.Err() == nil {
+		time.Sleep(interval)
+
+		bootstrapped, err := client.IsBootstrapped(chain)
+		if err != nil {
+			notifier.Alert(fmt.Sprintf("%s-Chain IsBootstrapped check failed: %s", chain, err.Error()))
+			continue
+		}
+
+		if !bootstrapped {
+			continue
+		}
+
+		notifier.Info(fmt.Sprintf("%s-Chain bootstrapped after %s", chain, time.Since(start)))
+		return
+	}
+}
+
 // MonitorHealth checks a node's health
 // each interval.
 func MonitorHealth(
@@ -45,76 +73,36 @@ func MonitorHealth(
 	notifier Notifier,
 	client Client,
 ) {
-	var healthy, bootstrapped, sentHealth, sentBootstrapped bool
-	startHealth := time.Now()
+	go checkBootstrapped(ctx, interval, "X", notifier, client)
+	go checkBootstrapped(ctx, interval, "C", notifier, client)
+	go checkBootstrapped(ctx, interval, "P", notifier, client)
 
+	var healthy bool
+	start := time.Now()
 	for ctx.Err() == nil {
 		time.Sleep(interval)
 
 		thisHealthy, err := client.IsHealthy()
 		if err != nil {
-			if healthy {
-				notifier.Alert(fmt.Sprintf("health check failed: %s", err.Error()))
+			if healthy { // only send alert if we have already become healthy
+				healthy = false
+				notifier.Alert(fmt.Sprintf("IsHealthy check failed: %s", err.Error()))
 			}
 
-			fmt.Printf("received error while checking health: %s\n", err.Error())
 			continue
 		}
 
 		if healthy && !thisHealthy {
 			healthy = false
-			notifier.Alert("not healthy")
+			start = time.Now()
+			notifier.Alert(fmt.Sprintf("not healthy (healthy for %s)", time.Since(start)))
 			continue
-		} else if !healthy && thisHealthy {
+		}
+
+		if !healthy && thisHealthy {
 			healthy = true
-			if !sentHealth {
-				sentHealth = true
-				notifier.Info(fmt.Sprintf("healthy after %s", time.Since(startHealth)))
-			} else {
-				notifier.Info("healthy")
-			}
-		} else if !healthy && !thisHealthy {
-			continue
+			start = time.Now()
+			notifier.Info(fmt.Sprintf("healthy after %s", time.Since(start)))
 		}
-
-		if bootstrapped {
-			continue
-		}
-
-		xBootstrapped, err := client.IsBootstrapped("X")
-		if err != nil {
-			notifier.Alert(fmt.Sprintf("X-Chain bootstap check failed: %s", err.Error()))
-			continue
-		}
-
-		pBootstrapped, err := client.IsBootstrapped("P")
-		if err != nil {
-			notifier.Alert(fmt.Sprintf("P-Chain bootstap check failed: %s", err.Error()))
-			continue
-		}
-
-		cBootstrapped, err := client.IsBootstrapped("C")
-		if err != nil {
-			notifier.Alert(fmt.Sprintf("C-Chain bootstap check failed: %s", err.Error()))
-			continue
-		}
-
-		if !bootstrapped && xBootstrapped && pBootstrapped && cBootstrapped {
-			bootstrapped = true
-			if !sentBootstrapped {
-				sentBootstrapped = true
-				notifier.Info(fmt.Sprintf("chains bootstrapped after %s", time.Since(startHealth)))
-			} else {
-				notifier.Info("chains bootstapped")
-			}
-			continue
-		}
-
-		fmt.Printf(
-			"chains not yet bootstrapped: c-chain=%t x-chain=%t p-chain=%t\n",
-			cBootstrapped,
-			xBootstrapped,
-			pBootstrapped,
-		)
 	}
 }
