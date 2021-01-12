@@ -12,6 +12,8 @@ quick and easy tool for running and monitoring an avalanche validator
 <p align="center">
   <a href="https://goreportcard.com/report/github.com/patrick-ogrady/avalanche-runner"><img src="https://goreportcard.com/badge/github.com/patrick-ogrady/avalanche-runner" /></a>
   <a href="https://github.com/patrick-ogrady/avalanche-runner/blob/master/LICENSE"><img src="https://img.shields.io/github/license/patrick-ogrady/avalanche-runner.svg" /></a>
+  <a href="https://github.com/patrick-ogrady/avalanche-runner/actions"><img src="https://github.com/patrick-ogrady/avalanche-runner/workflows/go/badge.svg" /></a>
+  <a href="https://github.com/patrick-ogrady/avalanche-runner/actions"><img src="https://github.com/patrick-ogrady/avalanche-runner/workflows/golangci-lint/badge.svg" /></a>
 </p>
 
 ## Usage
