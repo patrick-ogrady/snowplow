@@ -29,7 +29,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
-	mocks "github.com/patrick-ogrady/avalanche-runner/mocks/pkg/health"
+	mocks "github.com/patrick-ogrady/snowplow/mocks/pkg/health"
 )
 
 func handleBootstrappedChecks(t *testing.T, n *mocks.Notifier, c *mocks.Client, chain string) {

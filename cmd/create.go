@@ -26,7 +26,7 @@ import (
 	"github.com/ava-labs/avalanchego/staking"
 	"github.com/spf13/cobra"
 
-	"github.com/patrick-ogrady/avalanche-runner/pkg/utils"
+	"github.com/patrick-ogrady/snowplow/pkg/utils"
 )
 
 // createCmd represents the create command

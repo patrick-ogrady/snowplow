@@ -25,9 +25,9 @@ import (
 	"os/exec"
 	"time"
 
-	"github.com/patrick-ogrady/avalanche-runner/pkg/client"
-	"github.com/patrick-ogrady/avalanche-runner/pkg/health"
-	"github.com/patrick-ogrady/avalanche-runner/pkg/notifier"
+	"github.com/patrick-ogrady/snowplow/pkg/client"
+	"github.com/patrick-ogrady/snowplow/pkg/health"
+	"github.com/patrick-ogrady/snowplow/pkg/notifier"
 )
 
 const (

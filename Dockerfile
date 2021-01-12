@@ -41,10 +41,10 @@ FROM golang:1.15 AS runner
 
 ARG RUNNER_VERSION
 
-RUN git clone https://github.com/patrick-ogrady/avalanche-runner.git \
-  /go/src/github.com/patrick-ogrady/avalanche-runner
+RUN git clone https://github.com/patrick-ogrady/snowplow.git \
+  /go/src/github.com/patrick-ogrady/snowplow
 
-WORKDIR /go/src/github.com/patrick-ogrady/avalanche-runner
+WORKDIR /go/src/github.com/patrick-ogrady/snowplow
 
 ENV CGO_ENABLED=1
 ENV GOARCH=amd64
@@ -81,15 +81,15 @@ COPY --from=avalanche \
 
 # Install avalanche runner
 COPY --from=runner \
-  /go/src/github.com/patrick-ogrady/avalanche-runner/avalanche-runner \
-  /app/avalanche-runner
+  /go/src/github.com/patrick-ogrady/snowplow/snowplow \
+  /app/snowplow
 
 # Install config
 COPY --from=runner \
-  /go/src/github.com/patrick-ogrady/avalanche-runner/assets/avalanchego-config.json \
+  /go/src/github.com/patrick-ogrady/snowplow/assets/avalanchego-config.json \
   /app/avalanchego-config.json
 
 EXPOSE 9650
 EXPOSE 9651
 
-ENTRYPOINT ["/app/avalanche-runner", "run"]
+ENTRYPOINT ["/app/snowplow", "run"]

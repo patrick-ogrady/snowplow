@@ -25,10 +25,10 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/patrick-ogrady/avalanche-runner/pkg/compression"
-	"github.com/patrick-ogrady/avalanche-runner/pkg/encryption"
-	"github.com/patrick-ogrady/avalanche-runner/pkg/storage"
-	"github.com/patrick-ogrady/avalanche-runner/pkg/utils"
+	"github.com/patrick-ogrady/snowplow/pkg/compression"
+	"github.com/patrick-ogrady/snowplow/pkg/encryption"
+	"github.com/patrick-ogrady/snowplow/pkg/storage"
+	"github.com/patrick-ogrady/snowplow/pkg/utils"
 )
 
 // backupCmd represents the backup command

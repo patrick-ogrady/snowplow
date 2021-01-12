@@ -19,7 +19,7 @@
 
 package main
 
-import "github.com/patrick-ogrady/avalanche-runner/cmd"
+import "github.com/patrick-ogrady/snowplow/cmd"
 
 func main() {
 	cmd.Execute()

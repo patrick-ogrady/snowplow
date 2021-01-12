@@ -4,16 +4,16 @@
   </a>
 </p>
 <h3 align="center">
-  avalanche-runner
+  snowplow
 </h3>
 <p align="center">
 quick and easy tool for running and monitoring an <a href="https://www.avax.network">avalanche</a> validator
 </p>
 <p align="center">
-  <a href="https://goreportcard.com/report/github.com/patrick-ogrady/avalanche-runner"><img src="https://goreportcard.com/badge/github.com/patrick-ogrady/avalanche-runner" /></a>
-  <a href="https://github.com/patrick-ogrady/avalanche-runner/blob/master/LICENSE"><img src="https://img.shields.io/github/license/patrick-ogrady/avalanche-runner.svg" /></a>
-  <a href="https://github.com/patrick-ogrady/avalanche-runner/actions"><img src="https://github.com/patrick-ogrady/avalanche-runner/workflows/go/badge.svg?branch=master" /></a>
-  <a href="https://github.com/patrick-ogrady/avalanche-runner/actions"><img src="https://github.com/patrick-ogrady/avalanche-runner/workflows/golangci-lint/badge.svg?branch=master" /></a>
+  <a href="https://goreportcard.com/report/github.com/patrick-ogrady/snowplow"><img src="https://goreportcard.com/badge/github.com/patrick-ogrady/snowplow" /></a>
+  <a href="https://github.com/patrick-ogrady/snowplow/blob/master/LICENSE"><img src="https://img.shields.io/github/license/patrick-ogrady/snowplow.svg" /></a>
+  <a href="https://github.com/patrick-ogrady/snowplow/actions"><img src="https://github.com/patrick-ogrady/snowplow/workflows/go/badge.svg?branch=master" /></a>
+  <a href="https://github.com/patrick-ogrady/snowplow/actions"><img src="https://github.com/patrick-ogrady/snowplow/workflows/golangci-lint/badge.svg?branch=master" /></a>
 </p>
 
 ## Usage
@@ -26,7 +26,7 @@ make install
 _Creates in .avalanchego/staking (relative directory)_
 ### Create Staking Credentials
 ```text
-avalanche-runner create
+snowplow create
 ```
 
 ### Encrypt + Backup Credentials
@@ -34,7 +34,7 @@ _Make sure to set GOOGLE_APPLICATION_CREDENTIALS_
 https://cloud.google.com/storage/docs/reference/libraries#setting_up_authentication
 ```text
 export GOOGLE_APPLICATION_CREDENTIALS=blah
-avalanche-runner backup [bucket]
+snowplow backup [bucket]
 ```
 
 ### Restore + Decrypt Credentials
@@ -42,7 +42,7 @@ _Make sure to set GOOGLE_APPLICATION_CREDENTIALS_
 https://cloud.google.com/storage/docs/reference/libraries#setting_up_authentication
 ```text
 export GOOGLE_APPLICATION_CREDENTIALS=blah
-avalanche-runner restore [bucket] [node ID]
+snowplow restore [bucket] [node ID]
 ```
 
 ### Start Node
@@ -52,7 +52,7 @@ make run-mainnet
 ```
 
 #### Twilio Notifications
-_add .avalanchego/.avalanche-runner.yaml_
+_add .avalanchego/.snowplow.yaml_
 ```yaml
 twilio:
   accountSid: "<accountSid>"

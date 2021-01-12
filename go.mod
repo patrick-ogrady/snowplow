@@ -1,4 +1,4 @@
-module github.com/patrick-ogrady/avalanche-runner
+module github.com/patrick-ogrady/snowplow
 
 go 1.13
 

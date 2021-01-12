@@ -74,7 +74,7 @@ var cfgFile string
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "avalanche-runner",
+	Use:   "snowplow",
 	Short: "quick and easy tool for running an avalanche node responsibly",
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
@@ -101,7 +101,7 @@ func init() {
 		&cfgFile,
 		"config",
 		"",
-		"config file (default is $HOME/.avalanchego/.avalanche-runner.yaml)",
+		"config file (default is $HOME/.avalanchego/.snowplow.yaml)",
 	)
 
 	// Cobra also supports local flags, which will only run
@@ -120,9 +120,9 @@ func initConfig() {
 		// Use config file from the flag.
 		viper.SetConfigFile(cfgFile)
 	} else {
-		// Search config in home directory with name ".avalanche-runner" (without extension).
+		// Search config in home directory with name ".snowplow" (without extension).
 		viper.AddConfigPath(filepath.Join(homeDir, ".avalanchego"))
-		viper.SetConfigName(".avalanche-runner")
+		viper.SetConfigName(".snowplow")
 	}
 
 	viper.AutomaticEnv() // read in environment variables that match
