@@ -27,9 +27,6 @@ check-license:
 	${ADDLICENCE_SCRIPT} -check .;
 	go mod tidy;
 
-compile:
-	./scripts/compile.sh $(version)
-
 docker-build:
 	docker build \
 		--no-cache \

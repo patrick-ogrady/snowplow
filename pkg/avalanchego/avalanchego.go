@@ -17,21 +17,28 @@
 // IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-package utils
+package avalanchego
 
 import (
 	"context"
 	"os"
 	"os/exec"
+	"time"
+
+	"github.com/patrick-ogrady/avalanche-runner/pkg/client"
+	"github.com/patrick-ogrady/avalanche-runner/pkg/health"
+	"github.com/patrick-ogrady/avalanche-runner/pkg/notifier"
 )
 
 const (
 	avalanchegoBin  = "/app/avalanchego"
 	avalancheConfig = "/app/avalanchego-config.json"
+
+	healthCheckInterval = time.Second * 10
 )
 
 // Run starts an avalanchego node.
-func Run(ctx context.Context) error {
+func Run(ctx context.Context, nodeID string, notifier *notifier.Notifier) error {
 	cmd := exec.Command(
 		avalanchegoBin,
 		"--config-file",
@@ -41,6 +48,8 @@ func Run(ctx context.Context) error {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
+	// Send interrupt signal if context is
+	// done
 	go func() {
 		select {
 		case <-ctx.Done():
@@ -49,6 +58,15 @@ func Run(ctx context.Context) error {
 			}
 		}
 	}()
+
+	// Periodically check health and send
+	// notifications as needed
+	go health.MonitorHealth(
+		ctx,
+		healthCheckInterval,
+		notifier,
+		client.NewClient(),
+	)
 
 	return cmd.Run()
 }

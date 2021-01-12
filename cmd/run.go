@@ -26,7 +26,9 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/patrick-ogrady/avalanche-runner/utils"
+	"github.com/patrick-ogrady/avalanche-runner/pkg/avalanchego"
+	"github.com/patrick-ogrady/avalanche-runner/pkg/notifier"
+	"github.com/patrick-ogrady/avalanche-runner/pkg/utils"
 )
 
 // runCmd represents the run command
@@ -71,13 +73,24 @@ func runFunc(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("staking certificate at %s does not exist", stakingCertPath)
 	}
 
+	nodeID, err := utils.LoadNodeID(stakingCertPath)
+	if err != nil {
+		return fmt.Errorf("%w: could not calculate NodeID", err)
+	}
+
+	notifier, err := notifier.NewNotifier(utils.PrintableNodeID(nodeID))
+	if err != nil {
+		fmt.Printf("notifier disabled: %s\n", err.Error())
+	}
+
 	// Run avalanchego
-	return utils.Run(Context)
+	notifier.Info("starting")
+	runErr := avalanchego.Run(Context, utils.PrintableNodeID(nodeID), notifier)
+	if runErr == nil || (runErr != nil && SignalReceived) {
+		notifier.Info("stopping")
+		return nil
+	}
 
-	// Run health checker
-	// https://docs.avax.network/build/avalanchego-apis/health-api#health-getliveness
-
-	// Message Twilio
-
-	// return nil
+	notifier.Alert(fmt.Sprintf("unexpected error: %s", runErr.Error()))
+	return runErr
 }
