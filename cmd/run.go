@@ -26,7 +26,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/patrick-ogrady/avalanche-runner/utils"
+	"github.com/patrick-ogrady/avalanche-runner/pkg/avalanchego"
+	"github.com/patrick-ogrady/avalanche-runner/pkg/utils"
 )
 
 // runCmd represents the run command
@@ -77,5 +78,5 @@ func runFunc(cmd *cobra.Command, args []string) error {
 	}
 
 	// Run avalanchego
-	return utils.Run(Context, utils.PrintableNodeID(nodeID))
+	return avalanchego.Run(Context, utils.PrintableNodeID(nodeID))
 }

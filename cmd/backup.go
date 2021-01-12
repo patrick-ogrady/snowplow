@@ -23,8 +23,12 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/patrick-ogrady/avalanche-runner/utils"
 	"github.com/spf13/cobra"
+
+	"github.com/patrick-ogrady/avalanche-runner/pkg/compression"
+	"github.com/patrick-ogrady/avalanche-runner/pkg/encryption"
+	"github.com/patrick-ogrady/avalanche-runner/pkg/storage"
+	"github.com/patrick-ogrady/avalanche-runner/pkg/utils"
 )
 
 // backupCmd represents the backup command
@@ -74,19 +78,19 @@ func backupFunc(cmd *cobra.Command, args []string) error {
 
 	// ZIP Credentials
 	zipFile := fmt.Sprintf("%s.zip", printableNodeID)
-	if err := utils.Compress(stakingDirectory, zipFile); err != nil {
+	if err := compression.Compress(stakingDirectory, zipFile); err != nil {
 		return fmt.Errorf("%w: could not gzip credentials", err)
 	}
 
 	// Encrypt Credentials
 	encryptedFilePath := fmt.Sprintf("%s.gpg", zipFile)
-	if err := utils.Encrypt(zipFile, encryptedFilePath); err != nil {
+	if err := encryption.Encrypt(zipFile, encryptedFilePath); err != nil {
 		return fmt.Errorf("%w: could not encrypt credentials", err)
 	}
 
 	// Backup Credentials
 	bucket := args[0]
-	if err := utils.Upload(
+	if err := storage.Upload(
 		Context,
 		bucket,
 		encryptedFilePath,

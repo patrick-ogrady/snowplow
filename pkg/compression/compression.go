@@ -17,47 +17,39 @@
 // IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-package utils
+package compression
 
 import (
-	"context"
-	"os"
+	"fmt"
 	"os/exec"
-	"time"
 )
 
-const (
-	avalanchegoBin  = "/app/avalanchego"
-	avalancheConfig = "/app/avalanchego-config.json"
-
-	healthCheckInterval = time.Second * 10
-)
-
-// Run starts an avalanchego node.
-func Run(ctx context.Context, nodeID string) error {
-	cmd := exec.Command(
-		avalanchegoBin,
-		"--config-file",
-		avalancheConfig,
+// Compress compresses a file using ZIP.
+func Compress(input string, output string) error {
+	zipCmd := exec.Command(
+		"zip",
+		"-r",
+		output,
+		input,
 	)
-	cmd.Stdin = os.Stdin
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
+	if err := zipCmd.Run(); err != nil {
+		return fmt.Errorf("%w: could not gzip credentials", err)
+	}
 
-	// Send interrupt signal if context is
-	// done
-	go func() {
-		select {
-		case <-ctx.Done():
-			if cmd.Process != nil {
-				cmd.Process.Signal(os.Interrupt)
-			}
-		}
-	}()
+	return nil
+}
 
-	// Periodically check health and send
-	// notifications as needed
-	go MonitorHealth(ctx, nodeID, healthCheckInterval)
+// Decompress decompresses a file using ZIP.
+func Decompress(input string, output string) error {
+	unzipCmd := exec.Command(
+		"unzip",
+		input,
+		"-d",
+		output,
+	)
+	if err := unzipCmd.Run(); err != nil {
+		return fmt.Errorf("%w: could not unzip %s", err, input)
+	}
 
-	return cmd.Run()
+	return nil
 }

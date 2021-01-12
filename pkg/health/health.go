@@ -17,7 +17,7 @@
 // IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-package utils
+package health
 
 import (
 	"context"
@@ -26,6 +26,8 @@ import (
 
 	"github.com/ava-labs/avalanchego/api/health"
 	"github.com/ava-labs/avalanchego/api/info"
+
+	"github.com/patrick-ogrady/avalanche-runner/pkg/notifier"
 )
 
 const (
@@ -40,7 +42,8 @@ func MonitorHealth(
 	nodeID string,
 	interval time.Duration,
 ) {
-	notifier, err := NewNotifier(nodeID)
+	// TODO: move to outside
+	notifier, err := notifier.NewNotifier(nodeID)
 	if err != nil {
 		fmt.Printf("[NOTIFIER] not initializing: %s\n", err.Error())
 		return

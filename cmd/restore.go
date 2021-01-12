@@ -25,7 +25,10 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/patrick-ogrady/avalanche-runner/utils"
+	"github.com/patrick-ogrady/avalanche-runner/pkg/compression"
+	"github.com/patrick-ogrady/avalanche-runner/pkg/encryption"
+	"github.com/patrick-ogrady/avalanche-runner/pkg/storage"
+	"github.com/patrick-ogrady/avalanche-runner/pkg/utils"
 )
 
 // restoreCmd represents the restore command
@@ -60,7 +63,7 @@ func restoreFunc(cmd *cobra.Command, args []string) error {
 	bucket := args[0]
 	printableNodeID := args[1]
 	encryptedFilePath := fmt.Sprintf("%s.zip.gpg", printableNodeID)
-	if err := utils.Download(
+	if err := storage.Download(
 		Context,
 		bucket,
 		encryptedFilePath,
@@ -70,12 +73,12 @@ func restoreFunc(cmd *cobra.Command, args []string) error {
 
 	// Decrypt
 	zipFile := fmt.Sprintf("%s.zip", printableNodeID)
-	if err := utils.Decrypt(encryptedFilePath, zipFile); err != nil {
+	if err := encryption.Decrypt(encryptedFilePath, zipFile); err != nil {
 		return fmt.Errorf("%w: could not decrypt credentials", err)
 	}
 
 	// Unzip
-	if err := utils.Decompress(zipFile, "."); err != nil {
+	if err := compression.Decompress(zipFile, "."); err != nil {
 		return fmt.Errorf("%w: could not unzip %s", err, zipFile)
 	}
 
