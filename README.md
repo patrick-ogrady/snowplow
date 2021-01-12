@@ -62,6 +62,6 @@ twilio:
 ```
 
 ## TODO
-* change name to snowplow
 * setup new host on google cloud script (install docker, etc)
+* cleanup README
 * add sha integrity check on backed up files
