@@ -1,11 +1,13 @@
 <p align="center">
-  <img width="25%" alt="avalanche" src="assets/logo.png?raw=true">
+  <a href="https://www.avax.network">
+    <img width="25%" alt="avalanche" src="assets/logo.png?raw=true">
+  </a>
 </p>
 <h3 align="center">
   avalanche-runner
 </h3>
 <p align="center">
-quick and easy tool for running an avalanche node responsibly
+quick and easy tool for running and monitoring an avalanche validator
 </p>
 <p align="center">
   <a href="https://goreportcard.com/report/github.com/patrick-ogrady/avalanche-runner"><img src="https://goreportcard.com/badge/github.com/patrick-ogrady/avalanche-runner" /></a>
