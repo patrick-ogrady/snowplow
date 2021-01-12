@@ -27,6 +27,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/patrick-ogrady/avalanche-runner/pkg/avalanchego"
+	"github.com/patrick-ogrady/avalanche-runner/pkg/notifier"
 	"github.com/patrick-ogrady/avalanche-runner/pkg/utils"
 )
 
@@ -77,6 +78,19 @@ func runFunc(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%w: could not calculate NodeID", err)
 	}
 
+	notifier, err := notifier.NewNotifier(utils.PrintableNodeID(nodeID))
+	if err != nil {
+		fmt.Printf("notifier disabled: %s\n", err.Error())
+	}
+
 	// Run avalanchego
-	return avalanchego.Run(Context, utils.PrintableNodeID(nodeID))
+	notifier.Info("starting")
+	runErr := avalanchego.Run(Context, utils.PrintableNodeID(nodeID), notifier)
+	if runErr == nil || (runErr != nil && SignalReceived) {
+		notifier.Info("stopping")
+		return nil
+	}
+
+	notifier.Alert(fmt.Sprintf("unexpected error: %s", runErr.Error()))
+	return runErr
 }

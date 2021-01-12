@@ -25,7 +25,9 @@ import (
 	"os/exec"
 	"time"
 
+	"github.com/patrick-ogrady/avalanche-runner/pkg/client"
 	"github.com/patrick-ogrady/avalanche-runner/pkg/health"
+	"github.com/patrick-ogrady/avalanche-runner/pkg/notifier"
 )
 
 const (
@@ -36,7 +38,7 @@ const (
 )
 
 // Run starts an avalanchego node.
-func Run(ctx context.Context, nodeID string) error {
+func Run(ctx context.Context, nodeID string, notifier *notifier.Notifier) error {
 	cmd := exec.Command(
 		avalanchegoBin,
 		"--config-file",
@@ -59,7 +61,12 @@ func Run(ctx context.Context, nodeID string) error {
 
 	// Periodically check health and send
 	// notifications as needed
-	go health.MonitorHealth(ctx, nodeID, healthCheckInterval)
+	go health.MonitorHealth(
+		ctx,
+		healthCheckInterval,
+		notifier,
+		client.NewClient(),
+	)
 
 	return cmd.Run()
 }

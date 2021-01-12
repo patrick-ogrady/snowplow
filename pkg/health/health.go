@@ -23,60 +23,51 @@ import (
 	"context"
 	"fmt"
 	"time"
-
-	"github.com/ava-labs/avalanchego/api/health"
-	"github.com/ava-labs/avalanchego/api/info"
-
-	"github.com/patrick-ogrady/avalanche-runner/pkg/notifier"
 )
 
-const (
-	nodeEndpoint = "http://localhost:9650"
-	timeout      = time.Second * 10
-)
+// Notifier ...
+type Notifier interface {
+	Alert(message string)
+	Info(message string)
+}
+
+// Client ...
+type Client interface {
+	IsHealthy() (bool, error)
+	IsBootstrapped(chain string) (bool, error)
+}
 
 // MonitorHealth checks a node's health
 // each interval.
 func MonitorHealth(
 	ctx context.Context,
-	nodeID string,
 	interval time.Duration,
+	notifier Notifier,
+	client Client,
 ) {
-	// TODO: move to outside
-	notifier, err := notifier.NewNotifier(nodeID)
-	if err != nil {
-		fmt.Printf("[NOTIFIER] not initializing: %s\n", err.Error())
-		return
-	}
-
-	fmt.Printf("[NOTIFIER] initialized for %s\n", nodeID)
-
-	healthClient := health.NewClient(nodeEndpoint, timeout)
-	infoClient := info.NewClient(nodeEndpoint, timeout)
-
 	var healthy, bootstrapped bool
 	for ctx.Err() == nil {
 		time.Sleep(interval)
 
-		thisHealthy, err := healthClient.GetLiveness()
+		thisHealthy, err := client.IsHealthy()
 		if err != nil {
 			if healthy {
 				notifier.Alert(fmt.Sprintf("health check failed: %s", err.Error()))
 			}
 
-			fmt.Printf("[NOTIFIER] received error while checking liveness: %s\n", err.Error())
+			fmt.Printf("received error while checking health: %s\n", err.Error())
 			continue
 		}
 
-		if healthy && !thisHealthy.Healthy {
+		if healthy && !thisHealthy {
 			healthy = false
-			notifier.Alert("node no longer healthy")
+			notifier.Alert("not healthy")
 			continue
-		} else if !healthy && thisHealthy.Healthy {
+		} else if !healthy && thisHealthy {
 			healthy = true
-			notifier.Info("node now healthy")
-		} else if !healthy && !thisHealthy.Healthy {
-			fmt.Println("[NOTIFIER] node not yet healthy")
+			notifier.Info("healthy")
+		} else if !healthy && !thisHealthy {
+			fmt.Println("not yet healthy")
 			continue
 		}
 
@@ -84,19 +75,19 @@ func MonitorHealth(
 			continue
 		}
 
-		xBootstrapped, err := infoClient.IsBootstrapped("X")
+		xBootstrapped, err := client.IsBootstrapped("X")
 		if err != nil {
 			notifier.Alert(fmt.Sprintf("X-Chain bootstap check failed: %s", err.Error()))
 			continue
 		}
 
-		pBootstrapped, err := infoClient.IsBootstrapped("P")
+		pBootstrapped, err := client.IsBootstrapped("P")
 		if err != nil {
 			notifier.Alert(fmt.Sprintf("P-Chain bootstap check failed: %s", err.Error()))
 			continue
 		}
 
-		cBootstrapped, err := infoClient.IsBootstrapped("C")
+		cBootstrapped, err := client.IsBootstrapped("C")
 		if err != nil {
 			notifier.Alert(fmt.Sprintf("C-Chain bootstap check failed: %s", err.Error()))
 			continue
@@ -105,6 +96,14 @@ func MonitorHealth(
 		if !bootstrapped && xBootstrapped && pBootstrapped && cBootstrapped {
 			bootstrapped = true
 			notifier.Info("all chains bootstapped")
+			continue
 		}
+
+		fmt.Printf(
+			"chains not yet bootstrapped: c-chain=%t x-chain=%t p-chain=%t\n",
+			cBootstrapped,
+			xBootstrapped,
+			pBootstrapped,
+		)
 	}
 }
