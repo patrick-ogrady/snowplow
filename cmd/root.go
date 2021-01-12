@@ -37,7 +37,8 @@ const (
 	stakingCertFile = "staker.crt"
 )
 
-// Source: https://github.com/ava-labs/avalanchego/blob/e2944176f9e87562140ecd979cafebb4707578c4/main/params.go#L44-L53
+// Source:
+// https://github.com/ava-labs/avalanchego/blob/e2944176f9e87562140ecd979cafebb4707578c4/main/params.go#L44-L53
 var (
 	// homeDir is the $HOME directory to use
 	// when creating the .avalanchego folder.
@@ -96,7 +97,12 @@ func init() {
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
 
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.avalanchego/.avalanche-runner.yaml)")
+	rootCmd.PersistentFlags().StringVar(
+		&cfgFile,
+		"config",
+		"",
+		"config file (default is $HOME/.avalanchego/.avalanche-runner.yaml)",
+	)
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.

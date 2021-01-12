@@ -89,7 +89,11 @@ func restoreFunc(cmd *cobra.Command, args []string) error {
 	}
 	recoveredNodeID := utils.PrintableNodeID(nodeID)
 	if printableNodeID != recoveredNodeID {
-		return fmt.Errorf("recovered NodeID %s does not match requested NodeID %s", recoveredNodeID, printableNodeID)
+		return fmt.Errorf(
+			"recovered NodeID %s does not match requested NodeID %s",
+			recoveredNodeID,
+			printableNodeID,
+		)
 	}
 
 	// Cleanup

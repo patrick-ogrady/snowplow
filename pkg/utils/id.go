@@ -31,7 +31,8 @@ import (
 )
 
 // LoadNodeID returns the ID associated with a staker cert.
-// Source: https://github.com/ava-labs/avalanchego/blob/e2944176f9e87562140ecd979cafebb4707578c4/node/node.go#L407-L430
+// Source:
+// https://github.com/ava-labs/avalanchego/blob/e2944176f9e87562140ecd979cafebb4707578c4/node/node.go#L407-L430
 func LoadNodeID(stakingCertPath string) (ids.ShortID, error) {
 	stakeCert, err := ioutil.ReadFile(stakingCertPath)
 	if err != nil {

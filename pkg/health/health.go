@@ -86,6 +86,7 @@ func MonitorHealth(
 		if err != nil {
 			if healthy { // only send alert if we have already become healthy
 				healthy = false
+				start = time.Now()
 				notifier.Alert(fmt.Sprintf("IsHealthy check failed: %s", err.Error()))
 			}
 

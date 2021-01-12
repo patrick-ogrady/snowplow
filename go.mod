@@ -11,6 +11,7 @@ require (
 	github.com/kevinburke/twilio-go v0.0.0-20210106192831-51cae4e2b9d8
 	github.com/spf13/cobra v1.1.1
 	github.com/spf13/viper v1.7.1
+	github.com/stretchr/testify v1.4.0
 	github.com/ttacon/builder v0.0.0-20170518171403-c099f663e1c2 // indirect
 	github.com/ttacon/libphonenumber v1.1.0 // indirect
 )
