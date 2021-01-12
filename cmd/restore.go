@@ -36,7 +36,7 @@ var restoreCmd = &cobra.Command{
 	Use:   "restore [bucket] [node ID]",
 	Short: "restore staking credentials from google cloud storage",
 	RunE:  restoreFunc,
-	Args:  cobra.ExactArgs(2),
+	Args:  cobra.ExactArgs(2), // nolint:gomnd
 }
 
 func init() {

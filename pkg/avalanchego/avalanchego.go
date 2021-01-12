@@ -51,11 +51,9 @@ func Run(ctx context.Context, nodeID string, notifier *notifier.Notifier) error 
 	// Send interrupt signal if context is
 	// done
 	go func() {
-		select {
-		case <-ctx.Done():
-			if cmd.Process != nil {
-				cmd.Process.Signal(os.Interrupt)
-			}
+		<-ctx.Done()
+		if cmd.Process != nil {
+			_ = cmd.Process.Signal(os.Interrupt)
 		}
 	}()
 

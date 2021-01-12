@@ -85,25 +85,25 @@ func MonitorHealth(
 		thisHealthy, err := client.IsHealthy()
 		if err != nil {
 			if healthy { // only send alert if we have already become healthy
+				notifier.Alert(fmt.Sprintf("IsHealthy check failed: %s", err.Error()))
 				healthy = false
 				start = time.Now()
-				notifier.Alert(fmt.Sprintf("IsHealthy check failed: %s", err.Error()))
 			}
 
 			continue
 		}
 
 		if healthy && !thisHealthy {
+			notifier.Alert(fmt.Sprintf("not healthy (healthy for %s)", time.Since(start)))
 			healthy = false
 			start = time.Now()
-			notifier.Alert(fmt.Sprintf("not healthy (healthy for %s)", time.Since(start)))
 			continue
 		}
 
 		if !healthy && thisHealthy {
+			notifier.Info(fmt.Sprintf("healthy after %s", time.Since(start)))
 			healthy = true
 			start = time.Now()
-			notifier.Info(fmt.Sprintf("healthy after %s", time.Since(start)))
 		}
 	}
 }
