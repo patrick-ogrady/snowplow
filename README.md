@@ -7,13 +7,13 @@
   avalanche-runner
 </h3>
 <p align="center">
-quick and easy tool for running and monitoring an [avalanche](https://www.avax.network) validator
+quick and easy tool for running and monitoring an <a href="https://www.avax.network">avalanche</a> validator
 </p>
 <p align="center">
   <a href="https://goreportcard.com/report/github.com/patrick-ogrady/avalanche-runner"><img src="https://goreportcard.com/badge/github.com/patrick-ogrady/avalanche-runner" /></a>
   <a href="https://github.com/patrick-ogrady/avalanche-runner/blob/master/LICENSE"><img src="https://img.shields.io/github/license/patrick-ogrady/avalanche-runner.svg" /></a>
-  <a href="https://github.com/patrick-ogrady/avalanche-runner/actions"><img src="https://github.com/patrick-ogrady/avalanche-runner/workflows/go/badge.svg" /></a>
-  <a href="https://github.com/patrick-ogrady/avalanche-runner/actions"><img src="https://github.com/patrick-ogrady/avalanche-runner/workflows/golangci-lint/badge.svg" /></a>
+  <a href="https://github.com/patrick-ogrady/avalanche-runner/actions"><img src="https://github.com/patrick-ogrady/avalanche-runner/workflows/go/badge.svg?branch=master" /></a>
+  <a href="https://github.com/patrick-ogrady/avalanche-runner/actions"><img src="https://github.com/patrick-ogrady/avalanche-runner/workflows/golangci-lint/badge.svg?branch=master" /></a>
 </p>
 
 ## Usage
@@ -62,9 +62,6 @@ twilio:
 ```
 
 ## TODO
-* write tests for health with interfaces + mockery
 * change name to snowplow
-* add linting in makefile
 * setup new host on google cloud script (install docker, etc)
-* github workflow tester
 * add sha integrity check on backed up files
