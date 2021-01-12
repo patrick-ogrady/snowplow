@@ -45,7 +45,9 @@ func MonitorHealth(
 	notifier Notifier,
 	client Client,
 ) {
-	var healthy, bootstrapped bool
+	var healthy, bootstrapped, sentHealth, sentBootstrapped bool
+	startHealth := time.Now()
+
 	for ctx.Err() == nil {
 		time.Sleep(interval)
 
@@ -65,9 +67,13 @@ func MonitorHealth(
 			continue
 		} else if !healthy && thisHealthy {
 			healthy = true
-			notifier.Info("healthy")
+			if !sentHealth {
+				sentHealth = true
+				notifier.Info(fmt.Sprintf("healthy after %s", time.Since(startHealth)))
+			} else {
+				notifier.Info("healthy")
+			}
 		} else if !healthy && !thisHealthy {
-			fmt.Println("not yet healthy")
 			continue
 		}
 
@@ -95,7 +101,12 @@ func MonitorHealth(
 
 		if !bootstrapped && xBootstrapped && pBootstrapped && cBootstrapped {
 			bootstrapped = true
-			notifier.Info("all chains bootstapped")
+			if !sentBootstrapped {
+				sentBootstrapped = true
+				notifier.Info(fmt.Sprintf("chains bootstrapped after %s", time.Since(startHealth)))
+			} else {
+				notifier.Info("chains bootstapped")
+			}
 			continue
 		}
 
