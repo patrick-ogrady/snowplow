@@ -59,6 +59,9 @@ twilio:
   .avalanchego/staking
 - [x] dockerfile
 - [x] run binary
+- [ ] reorganize to pkg
+- [ ] write tests for health with interfaces + mockery
+- [ ] send message when node started or node shutdown
 - [ ] Config file with phone number + twilio tokens
 - [ ] page if stops or unhealthy (only once bootstrapped has gone true)
 - [ ] fix liveness check json
