@@ -22,6 +22,22 @@
 # Update apt
 sudo apt update;
 
+# Provision swap
+sudo fallocate -l 16G /swapfile;
+sudo chmod 600 /swapfile;
+sudo mkswap /swapfile;
+sudo swapon /swapfile;
+echo '/swapfile swap swap defaults 0 0' | sudo tee -a /etc/fstab;
+
+# Install Google Cloud Monitoring agent
+cd ..;
+curl -sSO https://dl.google.com/cloudagents/add-monitoring-agent-repo.sh;
+sudo bash add-monitoring-agent-repo.sh;
+sudo apt update;
+sudo apt install stackdriver-agent -y;
+sudo service stackdriver-agent start;
+cd snowplow;
+
 # Install git
 sudo apt install git -y;
 
