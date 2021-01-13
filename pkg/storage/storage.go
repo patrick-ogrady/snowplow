@@ -29,6 +29,8 @@ import (
 	"time"
 
 	"cloud.google.com/go/storage"
+
+	"github.com/patrick-ogrady/snowplow/pkg/integrity"
 )
 
 const (
@@ -45,11 +47,29 @@ func Upload(ctx context.Context, bucket string, name string) error {
 	}
 	defer f.Close()
 
+	checksum, err := integrity.Checksum(f)
+	if err != nil {
+		return fmt.Errorf("%w: could not get checksum of credentials", err)
+	}
+
+	if err := uploadString(
+		ctx,
+		bucket,
+		fmt.Sprintf("%s.checksum", name),
+		checksum,
+	); err != nil {
+		return fmt.Errorf("%w: unable to upload checksum", err)
+	}
+
+	if _, err := f.Seek(0, io.SeekStart); err != nil {
+		return fmt.Errorf("%w: unable to reset file pointer", err)
+	}
+
 	return upload(ctx, bucket, name, f)
 }
 
-// UploadString uploads a string to name.
-func UploadString(ctx context.Context, bucket string, name string, blob string) error {
+// uploadString uploads a string to name.
+func uploadString(ctx context.Context, bucket string, name string, blob string) error {
 	return upload(ctx, bucket, name, bytes.NewReader([]byte(blob)))
 }
 
@@ -83,6 +103,24 @@ func Download(ctx context.Context, bucket string, name string) error {
 		return fmt.Errorf("%w: unable to download name", err)
 	}
 
+	dChecksum, err := downloadString(
+		ctx,
+		bucket,
+		fmt.Sprintf("%s.checksum", name),
+	)
+	if err != nil {
+		return fmt.Errorf("%w: unable to download checksum", err)
+	}
+
+	checksum, err := integrity.Checksum(bytes.NewReader(data))
+	if err != nil {
+		return fmt.Errorf("%w: could not get checksum of credentials", err)
+	}
+
+	if checksum != dChecksum {
+		return fmt.Errorf("expected checksum %s but got %s", dChecksum, checksum)
+	}
+
 	if err := ioutil.WriteFile(name, data, 0644); err != nil {
 		return fmt.Errorf("%w: unable to write %s to disk", err, name)
 	}
@@ -90,8 +128,8 @@ func Download(ctx context.Context, bucket string, name string) error {
 	return nil
 }
 
-// DownloadString downloads a string from name.
-func DownloadString(ctx context.Context, bucket string, name string) (string, error) {
+// downloadString downloads a string from name.
+func downloadString(ctx context.Context, bucket string, name string) (string, error) {
 	data, err := download(ctx, bucket, name)
 	if err != nil {
 		return "", fmt.Errorf("%w: unable to download name", err)

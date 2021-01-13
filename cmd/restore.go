@@ -27,7 +27,6 @@ import (
 
 	"github.com/patrick-ogrady/snowplow/pkg/compression"
 	"github.com/patrick-ogrady/snowplow/pkg/encryption"
-	"github.com/patrick-ogrady/snowplow/pkg/integrity"
 	"github.com/patrick-ogrady/snowplow/pkg/storage"
 	"github.com/patrick-ogrady/snowplow/pkg/utils"
 )
@@ -60,19 +59,9 @@ func restoreFunc(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s is not empty directory", stakingDirectory)
 	}
 
-	// Download checksum
+	// Download credentials
 	bucket := args[0]
 	printableNodeID := args[1]
-	checksum, err := storage.DownloadString(
-		Context,
-		bucket,
-		fmt.Sprintf("%s.checksum", printableNodeID),
-	)
-	if err != nil {
-		return fmt.Errorf("%w: unable to download checksum", err)
-	}
-
-	// Download credentials
 	encryptedFilePath := fmt.Sprintf("%s.tar.gz.gpg", printableNodeID)
 	if err := storage.Download(
 		Context,
@@ -80,17 +69,6 @@ func restoreFunc(cmd *cobra.Command, args []string) error {
 		encryptedFilePath,
 	); err != nil {
 		return fmt.Errorf("%w: unable to download %s", err, encryptedFilePath)
-	}
-
-	// Compute checksum of downloaded blob
-	downloadedChecksum, err := integrity.Checksum(encryptedFilePath)
-	if err != nil {
-		return fmt.Errorf("%w: could not compute checksum of download object", err)
-	}
-
-	// Compare checksum
-	if checksum != downloadedChecksum {
-		return fmt.Errorf("expected checksum %s but got %s", checksum, downloadedChecksum)
 	}
 
 	// Decrypt
