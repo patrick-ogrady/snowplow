@@ -98,7 +98,7 @@ func upload(ctx context.Context, bucket string, name string, blob io.Reader) err
 // Download retrieves a file from a bucket with a
 // given name.
 func Download(ctx context.Context, bucket string, name string) error {
-	if err := download(ctx, bucket, name); err != nil {
+	if err := downloadFile(ctx, bucket, name); err != nil {
 		return fmt.Errorf("%w: unable to download %s", err, name)
 	}
 
@@ -131,18 +131,9 @@ func Download(ctx context.Context, bucket string, name string) error {
 
 // downloadString downloads a string from name.
 func downloadString(ctx context.Context, bucket string, name string) (string, error) {
-	client, err := storage.NewClient(ctx)
+	rc, err := download(ctx, bucket, name)
 	if err != nil {
-		return "", fmt.Errorf("%w: could not create new storage client", err)
-	}
-	defer client.Close()
-
-	ctx, cancel := context.WithTimeout(ctx, defaultTimeout)
-	defer cancel()
-
-	rc, err := client.Bucket(bucket).Object(name).NewReader(ctx)
-	if err != nil {
-		return "", fmt.Errorf("Object(%q).NewReader: %v", name, err)
+		return "", fmt.Errorf("%w: unable to download %s", err, name)
 	}
 	defer rc.Close()
 
@@ -154,19 +145,12 @@ func downloadString(ctx context.Context, bucket string, name string) (string, er
 	return string(data), nil
 }
 
-func download(ctx context.Context, bucket string, name string) error {
-	client, err := storage.NewClient(ctx)
+// downloadFile downloads a file from name without loading
+// it all into memory at once.
+func downloadFile(ctx context.Context, bucket string, name string) error {
+	rc, err := download(ctx, bucket, name)
 	if err != nil {
-		return fmt.Errorf("%w: could not create new storage client", err)
-	}
-	defer client.Close()
-
-	ctx, cancel := context.WithTimeout(ctx, defaultTimeout)
-	defer cancel()
-
-	rc, err := client.Bucket(bucket).Object(name).NewReader(ctx)
-	if err != nil {
-		return fmt.Errorf("Object(%q).NewReader: %v", name, err)
+		return fmt.Errorf("%w: unable to download %s", err, name)
 	}
 	defer rc.Close()
 
@@ -181,4 +165,23 @@ func download(ctx context.Context, bucket string, name string) error {
 	}
 
 	return nil
+}
+
+// download is the core of the download process.
+func download(ctx context.Context, bucket string, name string) (io.ReadCloser, error) {
+	client, err := storage.NewClient(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("%w: could not create new storage client", err)
+	}
+	defer client.Close()
+
+	ctx, cancel := context.WithTimeout(ctx, defaultTimeout)
+	defer cancel()
+
+	rc, err := client.Bucket(bucket).Object(name).NewReader(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("Object(%q).NewReader: %v", name, err)
+	}
+
+	return rc, nil
 }
