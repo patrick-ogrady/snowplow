@@ -73,7 +73,7 @@ func restoreFunc(cmd *cobra.Command, args []string) error {
 	}
 
 	// Download credentials
-	encryptedFilePath := fmt.Sprintf("%s.zip.gpg", printableNodeID)
+	encryptedFilePath := fmt.Sprintf("%s.tar.gz.gpg", printableNodeID)
 	if err := storage.Download(
 		Context,
 		bucket,
@@ -94,14 +94,14 @@ func restoreFunc(cmd *cobra.Command, args []string) error {
 	}
 
 	// Decrypt
-	zipFile := fmt.Sprintf("%s.zip", printableNodeID)
-	if err := encryption.Decrypt(encryptedFilePath, zipFile); err != nil {
+	tarFile := fmt.Sprintf("%s.tar.gz", printableNodeID)
+	if err := encryption.Decrypt(encryptedFilePath, tarFile); err != nil {
 		return fmt.Errorf("%w: could not decrypt credentials", err)
 	}
 
-	// Unzip
-	if err := compression.Decompress(zipFile, "."); err != nil {
-		return fmt.Errorf("%w: could not unzip %s", err, zipFile)
+	// Untar credentials
+	if err := compression.Decompress(tarFile, "."); err != nil {
+		return fmt.Errorf("%w: could not decompress %s", err, tarFile)
 	}
 
 	// Verify Credential Matches
@@ -119,8 +119,8 @@ func restoreFunc(cmd *cobra.Command, args []string) error {
 	}
 
 	// Cleanup
-	if err := os.Remove(zipFile); err != nil {
-		return fmt.Errorf("%w: unable to delete %s", err, zipFile)
+	if err := os.Remove(tarFile); err != nil {
+		return fmt.Errorf("%w: unable to delete %s", err, tarFile)
 	}
 	if err := os.Remove(encryptedFilePath); err != nil {
 		return fmt.Errorf("%w: unable to delete %s", err, encryptedFilePath)
