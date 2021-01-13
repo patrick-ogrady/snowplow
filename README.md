@@ -32,7 +32,7 @@ I don't plan on hosting any pre-built binaries because I think it is important
 that the users of this tool compile their own code (for their own safety).
 
 ```text
-git clone github.com/patrick-ogrady/snowplow;
+git clone https://github.com/patrick-ogrady/snowplow;
 make install;
 ```
 
