@@ -29,6 +29,8 @@ import (
 	"time"
 
 	"cloud.google.com/go/storage"
+
+	"github.com/patrick-ogrady/snowplow/pkg/integrity"
 )
 
 const (
@@ -41,15 +43,33 @@ func Upload(ctx context.Context, bucket string, name string) error {
 	// Open local file.
 	f, err := os.Open(name)
 	if err != nil {
-		return fmt.Errorf("%w: could not open file", err)
+		return fmt.Errorf("%w: could not open file %s", err, name)
 	}
 	defer f.Close()
+
+	checksum, err := integrity.Checksum(f)
+	if err != nil {
+		return fmt.Errorf("%w: could not get checksum of credentials", err)
+	}
+
+	if err := uploadString(
+		ctx,
+		bucket,
+		fmt.Sprintf("%s.checksum", name),
+		checksum,
+	); err != nil {
+		return fmt.Errorf("%w: unable to upload checksum", err)
+	}
+
+	if _, err := f.Seek(0, io.SeekStart); err != nil {
+		return fmt.Errorf("%w: unable to reset file pointer", err)
+	}
 
 	return upload(ctx, bucket, name, f)
 }
 
-// UploadString uploads a string to name.
-func UploadString(ctx context.Context, bucket string, name string, blob string) error {
+// uploadString uploads a string to name.
+func uploadString(ctx context.Context, bucket string, name string, blob string) error {
 	return upload(ctx, bucket, name, bytes.NewReader([]byte(blob)))
 }
 
@@ -78,29 +98,77 @@ func upload(ctx context.Context, bucket string, name string, blob io.Reader) err
 // Download retrieves a file from a bucket with a
 // given name.
 func Download(ctx context.Context, bucket string, name string) error {
-	data, err := download(ctx, bucket, name)
-	if err != nil {
-		return fmt.Errorf("%w: unable to download name", err)
+	if err := downloadFile(ctx, bucket, name); err != nil {
+		return fmt.Errorf("%w: unable to download %s", err, name)
 	}
 
-	if err := ioutil.WriteFile(name, data, 0644); err != nil {
-		return fmt.Errorf("%w: unable to write %s to disk", err, name)
+	dChecksum, err := downloadString(
+		ctx,
+		bucket,
+		fmt.Sprintf("%s.checksum", name),
+	)
+	if err != nil {
+		return fmt.Errorf("%w: unable to download checksum", err)
+	}
+
+	f, err := os.Open(name)
+	if err != nil {
+		return fmt.Errorf("%w: could not open file %s", err, name)
+	}
+	defer f.Close()
+
+	checksum, err := integrity.Checksum(f)
+	if err != nil {
+		return fmt.Errorf("%w: could not get checksum of credentials", err)
+	}
+
+	if checksum != dChecksum {
+		return fmt.Errorf("expected checksum %s but got %s", dChecksum, checksum)
 	}
 
 	return nil
 }
 
-// DownloadString downloads a string from name.
-func DownloadString(ctx context.Context, bucket string, name string) (string, error) {
-	data, err := download(ctx, bucket, name)
+// downloadString downloads a string from name.
+func downloadString(ctx context.Context, bucket string, name string) (string, error) {
+	rc, err := download(ctx, bucket, name)
 	if err != nil {
-		return "", fmt.Errorf("%w: unable to download name", err)
+		return "", fmt.Errorf("%w: unable to download %s", err, name)
+	}
+	defer rc.Close()
+
+	data, err := ioutil.ReadAll(rc)
+	if err != nil {
+		return "", fmt.Errorf("ioutil.ReadAll: %v", err)
 	}
 
 	return string(data), nil
 }
 
-func download(ctx context.Context, bucket string, name string) ([]byte, error) {
+// downloadFile downloads a file from name without loading
+// it all into memory at once.
+func downloadFile(ctx context.Context, bucket string, name string) error {
+	rc, err := download(ctx, bucket, name)
+	if err != nil {
+		return fmt.Errorf("%w: unable to download %s", err, name)
+	}
+	defer rc.Close()
+
+	w, err := os.Create(name)
+	if err != nil {
+		return fmt.Errorf("%w: unable to create file %s", err, name)
+	}
+	defer w.Close()
+
+	if _, err := io.Copy(w, rc); err != nil {
+		return fmt.Errorf("%w: unable to download to %s", err, name)
+	}
+
+	return nil
+}
+
+// download is the core of the download process.
+func download(ctx context.Context, bucket string, name string) (io.ReadCloser, error) {
 	client, err := storage.NewClient(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("%w: could not create new storage client", err)
@@ -114,12 +182,6 @@ func download(ctx context.Context, bucket string, name string) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Object(%q).NewReader: %v", name, err)
 	}
-	defer rc.Close()
 
-	data, err := ioutil.ReadAll(rc)
-	if err != nil {
-		return nil, fmt.Errorf("ioutil.ReadAll: %v", err)
-	}
-
-	return data, nil
+	return rc, nil
 }
