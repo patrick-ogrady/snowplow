@@ -46,8 +46,17 @@ is different that `avalanchego` which assumes these credentials are in
 This command will generate new staking credentials in the
 `.avalanchego/staking` folder, if staking credentials do not yet exist in that
 folder.
+
 ```text
 snowplow create
+```
+
+### View Staking Credentials
+This command will print the NodeID associated with the staking credentials in
+the `.avalanchego/staking` folder, if they exist.
+
+```text
+snowplow view
 ```
 
 ### Encrypt + Backup Credentials
