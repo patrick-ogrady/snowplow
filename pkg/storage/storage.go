@@ -20,6 +20,7 @@
 package storage
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io"
@@ -37,12 +38,6 @@ const (
 // Upload puts a specified file in a bucket with
 // a given name.
 func Upload(ctx context.Context, bucket string, name string) error {
-	client, err := storage.NewClient(ctx)
-	if err != nil {
-		return fmt.Errorf("%w: could not create new storage client", err)
-	}
-	defer client.Close()
-
 	// Open local file.
 	f, err := os.Open(name)
 	if err != nil {
@@ -50,12 +45,27 @@ func Upload(ctx context.Context, bucket string, name string) error {
 	}
 	defer f.Close()
 
+	return upload(ctx, bucket, name, f)
+}
+
+// UploadString uploads a string to name.
+func UploadString(ctx context.Context, bucket string, name string, blob string) error {
+	return upload(ctx, bucket, name, bytes.NewReader([]byte(blob)))
+}
+
+func upload(ctx context.Context, bucket string, name string, blob io.Reader) error {
+	client, err := storage.NewClient(ctx)
+	if err != nil {
+		return fmt.Errorf("%w: could not create new storage client", err)
+	}
+	defer client.Close()
+
 	ctx, cancel := context.WithTimeout(ctx, defaultTimeout)
 	defer cancel()
 
 	// Upload an object with storage.Writer.
 	wc := client.Bucket(bucket).Object(name).NewWriter(ctx)
-	if _, err = io.Copy(wc, f); err != nil {
+	if _, err = io.Copy(wc, blob); err != nil {
 		return fmt.Errorf("%w: io.Copy", err)
 	}
 	if err := wc.Close(); err != nil {
@@ -68,9 +78,32 @@ func Upload(ctx context.Context, bucket string, name string) error {
 // Download retrieves a file from a bucket with a
 // given name.
 func Download(ctx context.Context, bucket string, name string) error {
+	data, err := download(ctx, bucket, name)
+	if err != nil {
+		return fmt.Errorf("%w: unable to download name", err)
+	}
+
+	if err := ioutil.WriteFile(name, data, 0644); err != nil {
+		return fmt.Errorf("%w: unable to write %s to disk", err, name)
+	}
+
+	return nil
+}
+
+// DownloadString downloads a string from name.
+func DownloadString(ctx context.Context, bucket string, name string) (string, error) {
+	data, err := download(ctx, bucket, name)
+	if err != nil {
+		return "", fmt.Errorf("%w: unable to download name", err)
+	}
+
+	return string(data), nil
+}
+
+func download(ctx context.Context, bucket string, name string) ([]byte, error) {
 	client, err := storage.NewClient(ctx)
 	if err != nil {
-		return fmt.Errorf("%w: could not create new storage client", err)
+		return nil, fmt.Errorf("%w: could not create new storage client", err)
 	}
 	defer client.Close()
 
@@ -79,18 +112,14 @@ func Download(ctx context.Context, bucket string, name string) error {
 
 	rc, err := client.Bucket(bucket).Object(name).NewReader(ctx)
 	if err != nil {
-		return fmt.Errorf("Object(%q).NewReader: %v", name, err)
+		return nil, fmt.Errorf("Object(%q).NewReader: %v", name, err)
 	}
 	defer rc.Close()
 
 	data, err := ioutil.ReadAll(rc)
 	if err != nil {
-		return fmt.Errorf("ioutil.ReadAll: %v", err)
+		return nil, fmt.Errorf("ioutil.ReadAll: %v", err)
 	}
 
-	if err := ioutil.WriteFile(name, data, 0644); err != nil {
-		return fmt.Errorf("%w: unable to write %s to disk", err, name)
-	}
-
-	return nil
+	return data, nil
 }
