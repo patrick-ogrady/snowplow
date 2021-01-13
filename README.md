@@ -51,7 +51,7 @@ folder.
 snowplow create
 ```
 
-### View Staking Credentials
+### View NodeID
 This command will print the NodeID associated with the staking credentials in
 the `.avalanchego/staking` folder, if they exist.
 
