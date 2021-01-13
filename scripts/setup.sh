@@ -54,9 +54,6 @@ sudo apt install docker-ce -y;
 # Install make
 sudo apt install make -y;
 
-# Install zip
-sudo apt install zip -y;
-
 # Install snowplow
 make install;
 

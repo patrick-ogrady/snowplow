@@ -75,7 +75,7 @@ var cfgFile string
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "snowplow",
-	Short: "quick and easy tool for running an avalanche node responsibly",
+	Short: "quick and easy tool for running and monitoring an avalanche validator",
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
 	//	Run: func(cmd *cobra.Command, args []string) { },

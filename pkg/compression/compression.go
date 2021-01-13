@@ -24,31 +24,32 @@ import (
 	"os/exec"
 )
 
-// Compress compresses a file using ZIP.
+// Compress compresses a file using tar.
 func Compress(input string, output string) error {
-	zipCmd := exec.Command(
-		"zip",
-		"-r",
+	tarCmd := exec.Command(
+		"tar",
+		"-cvzf",
 		output,
 		input,
 	)
-	if err := zipCmd.Run(); err != nil {
-		return fmt.Errorf("%w: could not gzip credentials", err)
+	if err := tarCmd.Run(); err != nil {
+		return fmt.Errorf("%w: could not compress %s", err, input)
 	}
 
 	return nil
 }
 
-// Decompress decompresses a file using ZIP.
+// Decompress decompresses a file using tar.
 func Decompress(input string, output string) error {
-	unzipCmd := exec.Command(
-		"unzip",
+	untarCmd := exec.Command(
+		"tar",
+		"-xvf",
 		input,
-		"-d",
+		"-C",
 		output,
 	)
-	if err := unzipCmd.Run(); err != nil {
-		return fmt.Errorf("%w: could not unzip %s", err, input)
+	if err := untarCmd.Run(); err != nil {
+		return fmt.Errorf("%w: could not uncompress %s", err, input)
 	}
 
 	return nil
