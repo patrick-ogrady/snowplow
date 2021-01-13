@@ -87,6 +87,7 @@ OS on Google Cloud to run an avalanche validator.
 git clone https://github.com/patrick-ogrady/snowplow;
 cd snowplow;
 ./scripts/setup.sh;
+export PATH=$PATH:~/go/bin;
 ```
 
 ### Build Node

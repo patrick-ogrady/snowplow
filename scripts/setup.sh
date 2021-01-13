@@ -27,7 +27,6 @@ sudo apt install git -y;
 
 # Install golang
 sudo apt install golang -y;
-export PATH=$PATH:~/go/bin;
 
 # Install docker
 sudo apt install apt-transport-https ca-certificates curl software-properties-common -y;
