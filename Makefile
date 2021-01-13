@@ -13,7 +13,7 @@ DOCKER_IMAGE        ?= ${DOCKER_ORG}/${PROJECT}
 DOCKER_LABEL        ?= latest
 DOCKER_TAG          ?= ${DOCKER_IMAGE}:${DOCKER_LABEL}
 AVALANCHE_VERSION   ?= v1.1.2
-RUNNER_VERSION 			?= v0.0.1
+SNOWPLOW_VERSION 			?= v0.0.1
 
 build:
 	go build
@@ -33,7 +33,7 @@ docker-build:
 	docker build \
 		--no-cache \
 		--build-arg AVALANCHE_VERSION=${AVALANCHE_VERSION} \
-		--build-arg RUNNER_VERSION=${RUNNER_VERSION} \
+		--build-arg SNOWPLOW_VERSION=${SNOWPLOW_VERSION} \
 		-t ${DOCKER_TAG} \
 		-f Dockerfile \
 		.
@@ -42,7 +42,7 @@ docker-build-local:
 	docker build \
 		--no-cache \
 		--build-arg AVALANCHE_VERSION=${AVALANCHE_VERSION} \
-		--build-arg RUNNER_VERSION=${GIT_COMMIT} \
+		--build-arg SNOWPLOW_VERSION=${GIT_COMMIT} \
 		-t ${DOCKER_TAG} \
 		-f Dockerfile \
 		.

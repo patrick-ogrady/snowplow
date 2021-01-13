@@ -35,11 +35,11 @@ RUN git checkout $AVALANCHE_VERSION && \
     ./scripts/build.sh
 
 # ------------------------------------------------------------------------------
-# Build avalanche runner
+# Build avalanche snowplow
 # ------------------------------------------------------------------------------
-FROM golang:1.15 AS runner
+FROM golang:1.15 AS snowplow
 
-ARG RUNNER_VERSION
+ARG SNOWPLOW_VERSION
 
 RUN git clone https://github.com/patrick-ogrady/snowplow.git \
   /go/src/github.com/patrick-ogrady/snowplow
@@ -50,7 +50,7 @@ ENV CGO_ENABLED=1
 ENV GOARCH=amd64
 ENV GOOS=linux
 
-RUN git checkout $RUNNER_VERSION && \
+RUN git checkout $SNOWPLOW_VERSION && \
     go mod download
 
 RUN \
@@ -79,13 +79,13 @@ COPY --from=avalanche \
   /go/src/github.com/ava-labs/avalanchego/build/plugins/* \
   /app/plugins/
 
-# Install avalanche runner
-COPY --from=runner \
+# Install avalanche snowplow
+COPY --from=snowplow \
   /go/src/github.com/patrick-ogrady/snowplow/snowplow \
   /app/snowplow
 
 # Install config
-COPY --from=runner \
+COPY --from=snowplow \
   /go/src/github.com/patrick-ogrady/snowplow/assets/avalanchego-config.json \
   /app/avalanchego-config.json
 
