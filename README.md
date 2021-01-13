@@ -17,15 +17,14 @@ quick and easy tool for running and monitoring an <a href="https://www.avax.netw
 </p>
 
 <p align="center"><b>
-SNOWPLOW IS CONSIDERED <a href="https://en.wikipedia.org/wiki/Software_release_life_cycle#Alpha">ALPHA SOFTWARE</a>.
-USE AT YOUR OWN RISK!
+SNOWPLOW IS CONSIDERED ALPHA SOFTWARE. USE AT YOUR OWN RISK!
 </b></p>
 
 ## Origins
 When setting up my own [avalanche](https://www.avax.network) validator,
 I couldn't find any simple tools to backup my validator staking
 credentials or send simple text message alerts if the validator went haywire.
-So, I made my own `snowplow` to help tame the avalanche...zing.
+So, I made my own snowplow to help tame the avalanche...zing.
 
 ## Install
 To install `snowplow`, you must first install `golang` (to compile the code).
@@ -56,7 +55,7 @@ This command encrypts and backs up your staking credentials to the Google Cloud
 Storage bucket of your choosing.
 
 ```text
-export GOOGLE_APPLICATION_CREDENTIALS=blah
+export GOOGLE_APPLICATION_CREDENTIALS=path/to/credentials.json
 snowplow backup [bucket]
 ```
 
@@ -70,7 +69,7 @@ This command restores and decrypts the staking credentials of the node of your
 choosing from the Google Cloud Storage bucket of your choosing.
 
 ```text
-export GOOGLE_APPLICATION_CREDENTIALS=blah
+export GOOGLE_APPLICATION_CREDENTIALS=path/to/credentials.json
 snowplow restore [bucket] [node ID]
 ```
 
