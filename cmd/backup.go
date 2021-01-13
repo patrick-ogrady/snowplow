@@ -27,6 +27,7 @@ import (
 
 	"github.com/patrick-ogrady/snowplow/pkg/compression"
 	"github.com/patrick-ogrady/snowplow/pkg/encryption"
+	"github.com/patrick-ogrady/snowplow/pkg/integrity"
 	"github.com/patrick-ogrady/snowplow/pkg/storage"
 	"github.com/patrick-ogrady/snowplow/pkg/utils"
 )
@@ -79,7 +80,7 @@ func backupFunc(cmd *cobra.Command, args []string) error {
 	// ZIP Credentials
 	zipFile := fmt.Sprintf("%s.zip", printableNodeID)
 	if err := compression.Compress(stakingDirectory, zipFile); err != nil {
-		return fmt.Errorf("%w: could not gzip credentials", err)
+		return fmt.Errorf("%w: could not zip credentials", err)
 	}
 
 	// Encrypt Credentials
@@ -88,8 +89,24 @@ func backupFunc(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%w: could not encrypt credentials", err)
 	}
 
-	// Backup Credentials
+	// Checksum credentials
+	checksum, err := integrity.Checksum(encryptedFilePath)
+	if err != nil {
+		return fmt.Errorf("%w: could not get checksum of credentials", err)
+	}
+
+	// Upload checksum
 	bucket := args[0]
+	if err := storage.UploadString(
+		Context,
+		bucket,
+		fmt.Sprintf("%s.checksum", printableNodeID),
+		checksum,
+	); err != nil {
+		return fmt.Errorf("%w: unable to upload checksum", err)
+	}
+
+	// Backup Credentials
 	if err := storage.Upload(
 		Context,
 		bucket,
