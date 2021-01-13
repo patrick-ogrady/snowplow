@@ -32,7 +32,7 @@ I don't plan on hosting any pre-built binaries because I think it is important
 that the users of this tool compile their own code (for their own safety).
 
 ```text
-git clone github.com/patrick-ogrady/snowplow;
+git clone https://github.com/patrick-ogrady/snowplow;
 make install;
 ```
 
@@ -78,6 +78,17 @@ _Before running this command, make sure to export your
 Google Cloud's authentication mechanism
 [here](https://cloud.google.com/storage/docs/reference/libraries#setting_up_authentication)._
 
+## Google Cloud Deployment
+### Setup VM
+This sequence of commands sets up an Ubuntu 20.04 LTS
+OS on Google Cloud to run an avalanche validator.
+
+```text
+git clone https://github.com/patrick-ogrady/snowplow;
+cd snowplow;
+./scripts/setup.sh;
+```
+
 ### Build Node
 This command builds a Docker image containing `avalanchego` and
 the health monitoring mechanism from `snowplow`.
@@ -86,6 +97,8 @@ the health monitoring mechanism from `snowplow`.
 make docker-build
 ```
 
+_To use Docker on Google Cloud, you may need to prepend `sudo` to this command._
+
 ### Start Node
 This command starts a Docker container that starts `avalanchego` and
 the health monitoring mechanism from `snowplow`.
@@ -93,6 +106,8 @@ the health monitoring mechanism from `snowplow`.
 ```text
 make run-mainnet
 ```
+
+_To use Docker on Google Cloud, you may need to prepend `sudo` to this command._
 
 #### Twilio Notifications
 To enable text message alerts from [Twilio](https://www.twilio.com/), you must

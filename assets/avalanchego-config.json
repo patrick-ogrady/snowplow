@@ -1,6 +1,7 @@
 {
   "network-id": "mainnet",
   "http-host": "0.0.0.0",
+  "dynamic-public-ip": "opendns",
   "api-keystore-enabled": false,
   "api-admin-enabled": false,
   "api-ipcs-enabled": false,
