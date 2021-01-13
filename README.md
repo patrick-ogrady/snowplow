@@ -106,7 +106,3 @@ twilio:
   sender: "<sender phone number>"
   recipient: "<your phone number>"
 ```
-
-## TODO
-* setup new host on google cloud script (install docker, etc)
-* add sha integrity check on backed up files
