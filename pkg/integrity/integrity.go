@@ -4,7 +4,6 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"io"
-	"log"
 	"os"
 )
 
@@ -19,7 +18,7 @@ func Checksum(filepath string) (string, error) {
 
 	h := sha256.New()
 	if _, err := io.Copy(h, f); err != nil {
-		log.Fatal(err)
+		return "", fmt.Errorf("%w: unable to copy", err)
 	}
 
 	return fmt.Sprintf("%x", h.Sum(nil)), nil
