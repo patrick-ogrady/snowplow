@@ -16,43 +16,90 @@ quick and easy tool for running and monitoring an <a href="https://www.avax.netw
   <a href="https://github.com/patrick-ogrady/snowplow/actions"><img src="https://github.com/patrick-ogrady/snowplow/workflows/golangci-lint/badge.svg?branch=master" /></a>
 </p>
 
-## Usage
-### Install
-_must have golang installed_
+<p align="center"><b>
+SNOWPLOW IS CONSIDERED <a href="https://en.wikipedia.org/wiki/Software_release_life_cycle#Alpha">ALPHA SOFTWARE</a>.
+USE AT YOUR OWN RISK!
+</b></p>
+
+## Origins
+When setting up my own [avalanche](https://www.avax.network) validator,
+I couldn't find any simple tools to backup my validator staking
+credentials or send simple text message alerts if the validator went haywire.
+So, I made my own `snowplow` to help tame the avalanche...zing.
+
+## Install
+To install `snowplow`, you must first install `golang` (to compile the code).
+I don't plan on hosting any pre-built binaries because I think it is important
+that the users of this tool compile their own code (for their own safety).
+
 ```text
-make install
+git clone github.com/patrick-ogrady/snowplow;
+make install;
 ```
 
-_Creates in .avalanchego/staking (relative directory)_
+## Usage
+_For all of the following operations, `snowplow` assumes your staking
+credentials are kept in `.avalanchego/staking` (relative directory). Note, this
+is different that `avalanchego` which assumes these credentials are in
+`$HOME/.avalanchego/staking`._
+
 ### Create Staking Credentials
+This command will generate new staking credentials in the
+`.avalanchego/staking` folder, if staking credentials do not yet exist in that
+folder.
 ```text
 snowplow create
 ```
 
 ### Encrypt + Backup Credentials
-_Make sure to set GOOGLE_APPLICATION_CREDENTIALS_
-https://cloud.google.com/storage/docs/reference/libraries#setting_up_authentication
+This command encrypts and backs up your staking credentials to the Google Cloud
+Storage bucket of your choosing.
+
 ```text
 export GOOGLE_APPLICATION_CREDENTIALS=blah
 snowplow backup [bucket]
 ```
 
+_Before running this command, make sure to export your
+`GOOGLE_APPLICATION_CREDENTIALS` in your terminal. You can learn more about
+Google Cloud's authentication mechanism
+[here](https://cloud.google.com/storage/docs/reference/libraries#setting_up_authentication)._
+
 ### Restore + Decrypt Credentials
-_Make sure to set GOOGLE_APPLICATION_CREDENTIALS_
-https://cloud.google.com/storage/docs/reference/libraries#setting_up_authentication
+This command restores and decrypts the staking credentials of the node of your
+choosing from the Google Cloud Storage bucket of your choosing.
+
 ```text
 export GOOGLE_APPLICATION_CREDENTIALS=blah
 snowplow restore [bucket] [node ID]
 ```
 
+_Before running this command, make sure to export your
+`GOOGLE_APPLICATION_CREDENTIALS` in your terminal. You can learn more about
+Google Cloud's authentication mechanism
+[here](https://cloud.google.com/storage/docs/reference/libraries#setting_up_authentication)._
+
+### Build Node
+This command builds a Docker image containing `avalanchego` and
+the health monitoring mechanism from `snowplow`.
+
+```text
+make docker-build
+```
+
 ### Start Node
-_TODO: add docker cmd_
+This command starts a Docker container that starts `avalanchego` and
+the health monitoring mechanism from `snowplow`.
+
 ```text
 make run-mainnet
 ```
 
 #### Twilio Notifications
-_add .avalanchego/.snowplow.yaml_
+To enable text message alerts from [Twilio](https://www.twilio.com/), you must
+populate a `yaml` file at `.avalanchego/.snowplow.yaml` (in the same directory
+containing your staking keys).
+
 ```yaml
 twilio:
   accountSid: "<accountSid>"
@@ -63,5 +110,4 @@ twilio:
 
 ## TODO
 * setup new host on google cloud script (install docker, etc)
-* cleanup README
 * add sha integrity check on backed up files
