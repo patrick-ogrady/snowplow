@@ -26,10 +26,17 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"time"
 
 	"cloud.google.com/go/storage"
+	"github.com/cheggaaa/pb/v3"
+	"github.com/machinebox/progress"
 
 	"github.com/patrick-ogrady/snowplow/pkg/integrity"
+)
+
+const (
+	progressSleepTime = 10 * time.Millisecond
 )
 
 // Upload puts a specified file in a bucket with
@@ -41,6 +48,11 @@ func Upload(ctx context.Context, bucket string, name string) error {
 		return fmt.Errorf("%w: could not open file %s", err, name)
 	}
 	defer f.Close()
+
+	fInfo, err := f.Stat()
+	if err != nil {
+		return fmt.Errorf("%w: unable to get file stats for %s", err, name)
+	}
 
 	checksum, err := integrity.Checksum(f)
 	if err != nil {
@@ -60,24 +72,43 @@ func Upload(ctx context.Context, bucket string, name string) error {
 		return fmt.Errorf("%w: unable to reset file pointer", err)
 	}
 
-	return upload(ctx, bucket, name, f)
+	return upload(ctx, bucket, name, fInfo.Size(), f)
 }
 
 // uploadString uploads a string to name.
 func uploadString(ctx context.Context, bucket string, name string, blob string) error {
-	return upload(ctx, bucket, name, bytes.NewReader([]byte(blob)))
+	size := int64(len(blob))
+	return upload(ctx, bucket, name, size, bytes.NewReader([]byte(blob)))
 }
 
-func upload(ctx context.Context, bucket string, name string, blob io.Reader) error {
+func logUploadProgress(ctx context.Context, name string, size int64, blob *progress.Reader) {
+	go func() {
+		fmt.Printf("uploading %s...\n", name)
+
+		bar := pb.Start64(size)
+		bar.SetRefreshRate(progressSleepTime)
+		for ctx.Err() == nil && (size-blob.N()) > 0 {
+			bar.SetCurrent(blob.N())
+			time.Sleep(progressSleepTime)
+		}
+		bar.SetCurrent(size)
+		bar.Finish()
+	}()
+}
+
+func upload(ctx context.Context, bucket string, name string, size int64, blob io.Reader) error {
 	client, err := storage.NewClient(ctx)
 	if err != nil {
 		return fmt.Errorf("%w: could not create new storage client", err)
 	}
 	defer client.Close()
 
+	blobProgress := progress.NewReader(blob)
+	logUploadProgress(ctx, name, size, blobProgress)
+
 	// Upload an object with storage.Writer.
 	wc := client.Bucket(bucket).Object(name).NewWriter(ctx)
-	if _, err = io.Copy(wc, blob); err != nil {
+	if _, err = io.Copy(wc, blobProgress); err != nil {
 		return fmt.Errorf("%w: io.Copy", err)
 	}
 	if err := wc.Close(); err != nil {
@@ -90,10 +121,6 @@ func upload(ctx context.Context, bucket string, name string, blob io.Reader) err
 // Download retrieves a file from a bucket with a
 // given name.
 func Download(ctx context.Context, bucket string, name string) error {
-	if err := downloadFile(ctx, bucket, name); err != nil {
-		return fmt.Errorf("%w: unable to download %s", err, name)
-	}
-
 	dChecksum, err := downloadString(
 		ctx,
 		bucket,
@@ -101,6 +128,10 @@ func Download(ctx context.Context, bucket string, name string) error {
 	)
 	if err != nil {
 		return fmt.Errorf("%w: unable to download checksum", err)
+	}
+
+	if err := downloadFile(ctx, bucket, name); err != nil {
+		return fmt.Errorf("%w: unable to download %s", err, name)
 	}
 
 	f, err := os.Open(name)
@@ -137,6 +168,21 @@ func downloadString(ctx context.Context, bucket string, name string) (string, er
 	return string(data), nil
 }
 
+func logDownloadProgress(ctx context.Context, name string, rc *storage.Reader) {
+	go func() {
+		fmt.Printf("downloading %s...\n", name)
+
+		bar := pb.Start64(rc.Size())
+		bar.SetRefreshRate(progressSleepTime)
+		for ctx.Err() == nil && rc.Remain() > 0 {
+			bar.SetCurrent(rc.Size() - rc.Remain())
+			time.Sleep(progressSleepTime)
+		}
+		bar.SetCurrent(rc.Size())
+		bar.Finish()
+	}()
+}
+
 // downloadFile downloads a file from name without loading
 // it all into memory at once.
 func downloadFile(ctx context.Context, bucket string, name string) error {
@@ -160,7 +206,7 @@ func downloadFile(ctx context.Context, bucket string, name string) error {
 }
 
 // download is the core of the download process.
-func download(ctx context.Context, bucket string, name string) (io.ReadCloser, error) {
+func download(ctx context.Context, bucket string, name string) (*storage.Reader, error) {
 	client, err := storage.NewClient(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("%w: could not create new storage client", err)
@@ -172,5 +218,6 @@ func download(ctx context.Context, bucket string, name string) (io.ReadCloser, e
 		return nil, fmt.Errorf("Object(%q).NewReader: %v", name, err)
 	}
 
+	logDownloadProgress(ctx, name, rc)
 	return rc, nil
 }

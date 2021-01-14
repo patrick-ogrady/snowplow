@@ -26,6 +26,7 @@ import (
 
 // Compress compresses a file using tar.
 func Compress(input string, output string) error {
+	fmt.Printf("compressing %s...\n", output)
 	tarCmd := exec.Command(
 		"tar",
 		"-cvzf",
@@ -41,6 +42,7 @@ func Compress(input string, output string) error {
 
 // Decompress decompresses a file using tar.
 func Decompress(input string, output string) error {
+	fmt.Printf("decompressing %s...\n", input)
 	untarCmd := exec.Command(
 		"tar",
 		"-xvf",
