@@ -172,13 +172,14 @@ func logDownloadProgress(ctx context.Context, name string, rc *storage.Reader) {
 	go func() {
 		fmt.Printf("downloading %s...\n", name)
 
-		bar := pb.Start64(rc.Size())
+		size := rc.Attrs.Size
+		bar := pb.Start64(size)
 		bar.SetRefreshRate(progressSleepTime)
 		for ctx.Err() == nil && rc.Remain() > 0 {
-			bar.SetCurrent(rc.Size() - rc.Remain())
+			bar.SetCurrent(size - rc.Remain())
 			time.Sleep(progressSleepTime)
 		}
-		bar.SetCurrent(rc.Size())
+		bar.SetCurrent(size)
 		bar.Finish()
 	}()
 }
