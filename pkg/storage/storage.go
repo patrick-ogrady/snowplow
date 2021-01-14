@@ -26,15 +26,10 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
-	"time"
 
 	"cloud.google.com/go/storage"
 
 	"github.com/patrick-ogrady/snowplow/pkg/integrity"
-)
-
-const (
-	defaultTimeout = 50 * time.Second
 )
 
 // Upload puts a specified file in a bucket with
@@ -79,9 +74,6 @@ func upload(ctx context.Context, bucket string, name string, blob io.Reader) err
 		return fmt.Errorf("%w: could not create new storage client", err)
 	}
 	defer client.Close()
-
-	ctx, cancel := context.WithTimeout(ctx, defaultTimeout)
-	defer cancel()
 
 	// Upload an object with storage.Writer.
 	wc := client.Bucket(bucket).Object(name).NewWriter(ctx)
@@ -174,9 +166,6 @@ func download(ctx context.Context, bucket string, name string) (io.ReadCloser, e
 		return nil, fmt.Errorf("%w: could not create new storage client", err)
 	}
 	defer client.Close()
-
-	ctx, cancel := context.WithTimeout(ctx, defaultTimeout)
-	defer cancel()
 
 	rc, err := client.Bucket(bucket).Object(name).NewReader(ctx)
 	if err != nil {
