@@ -33,7 +33,7 @@ import (
 var backupDbCmd = &cobra.Command{
 	Use:   "backup [bucket] [name]",
 	Short: "backup db to google cloud storage",
-	Args:  cobra.ExactArgs(2),
+	Args:  cobra.ExactArgs(2), // nolint:gomnd
 	RunE:  backupDbFunc,
 }
 
