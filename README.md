@@ -59,13 +59,13 @@ the `.avalanchego/staking` folder, if they exist.
 snowplow view
 ```
 
-### Encrypt + Backup Credentials
+### Encrypt + Backup Staking Credentials
 This command encrypts and backs up your staking credentials to the Google Cloud
 Storage bucket of your choosing.
 
 ```text
 export GOOGLE_APPLICATION_CREDENTIALS=path/to/credentials.json
-snowplow backup [bucket]
+snowplow backup keys [bucket]
 ```
 
 _Before running this command, make sure to export your
@@ -73,13 +73,13 @@ _Before running this command, make sure to export your
 Google Cloud's authentication mechanism
 [here](https://cloud.google.com/storage/docs/reference/libraries#setting_up_authentication)._
 
-### Restore + Decrypt Credentials
+### Restore + Decrypt Staking Credentials
 This command restores and decrypts the staking credentials of the node of your
 choosing from the Google Cloud Storage bucket of your choosing.
 
 ```text
 export GOOGLE_APPLICATION_CREDENTIALS=path/to/credentials.json
-snowplow restore [bucket] [node ID]
+snowplow restore keys [bucket] [node ID]
 ```
 
 _Before running this command, make sure to export your

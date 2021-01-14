@@ -20,23 +20,13 @@
 package cmd
 
 import (
-	"fmt"
-	"os"
-
 	"github.com/spf13/cobra"
-
-	"github.com/patrick-ogrady/snowplow/pkg/compression"
-	"github.com/patrick-ogrady/snowplow/pkg/encryption"
-	"github.com/patrick-ogrady/snowplow/pkg/storage"
-	"github.com/patrick-ogrady/snowplow/pkg/utils"
 )
 
 // restoreCmd represents the restore command
 var restoreCmd = &cobra.Command{
-	Use:   "restore [bucket] [node ID]",
-	Short: "restore staking credentials from google cloud storage",
-	RunE:  restoreFunc,
-	Args:  cobra.ExactArgs(2), // nolint:gomnd
+	Use:   "restore",
+	Short: "restore data from google cloud storage",
 }
 
 func init() {
@@ -51,59 +41,4 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// restoreCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-}
-
-func restoreFunc(cmd *cobra.Command, args []string) error {
-	// Check if stakingDirectory is empty
-	if _, err := os.Stat(stakingDirectory); !os.IsNotExist(err) {
-		return fmt.Errorf("%s is not empty directory", stakingDirectory)
-	}
-
-	// Download credentials
-	bucket := args[0]
-	printableNodeID := args[1]
-	encryptedFilePath := fmt.Sprintf("%s.tar.gz.gpg", printableNodeID)
-	if err := storage.Download(
-		Context,
-		bucket,
-		encryptedFilePath,
-	); err != nil {
-		return fmt.Errorf("%w: unable to download %s", err, encryptedFilePath)
-	}
-
-	// Decrypt
-	tarFile := fmt.Sprintf("%s.tar.gz", printableNodeID)
-	if err := encryption.Decrypt(encryptedFilePath, tarFile); err != nil {
-		return fmt.Errorf("%w: could not decrypt credentials", err)
-	}
-
-	// Untar credentials
-	if err := compression.Decompress(tarFile, "."); err != nil {
-		return fmt.Errorf("%w: could not decompress %s", err, tarFile)
-	}
-
-	// Verify Credential Matches
-	nodeID, err := utils.LoadNodeID(stakingCertPath)
-	if err != nil {
-		return fmt.Errorf("%w: could not calculate recovered NodeID", err)
-	}
-	recoveredNodeID := utils.PrintableNodeID(nodeID)
-	if printableNodeID != recoveredNodeID {
-		return fmt.Errorf(
-			"recovered NodeID %s does not match requested NodeID %s",
-			recoveredNodeID,
-			printableNodeID,
-		)
-	}
-
-	// Cleanup
-	if err := os.Remove(tarFile); err != nil {
-		return fmt.Errorf("%w: unable to delete %s", err, tarFile)
-	}
-	if err := os.Remove(encryptedFilePath); err != nil {
-		return fmt.Errorf("%w: unable to delete %s", err, encryptedFilePath)
-	}
-
-	fmt.Printf("successfully restored %s to %s\n", printableNodeID, stakingDirectory)
-	return nil
 }

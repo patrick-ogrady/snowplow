@@ -56,6 +56,13 @@ var (
 
 	// stakingCertPath is filepath containing staking certificate.
 	stakingCertPath = filepath.Join(stakingDirectory, stakingCertFile)
+
+	// dbDirectory is the directory containing
+	// the db.
+	dbDirectory = filepath.Join(
+		fmt.Sprintf(".%s", constants.AppName),
+		"db",
+	)
 )
 
 var (
