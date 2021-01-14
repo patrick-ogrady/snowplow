@@ -75,7 +75,7 @@ func NewNotifier(nodeID string) (*Notifier, error) {
 // Info ...
 func (n *Notifier) Info(message string) {
 	fmt.Printf("NOTIFIER [INFO]: %s\n", message)
-	if n.client == nil {
+	if n == nil {
 		return
 	}
 
@@ -93,7 +93,7 @@ func (n *Notifier) Info(message string) {
 // Alert ...
 func (n *Notifier) Alert(message string) {
 	fmt.Printf("NOTIFIER [ALERT]: %s\n", message)
-	if n.client == nil {
+	if n == nil {
 		return
 	}
 
