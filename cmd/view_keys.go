@@ -20,17 +20,23 @@
 package cmd
 
 import (
+	"fmt"
+	"os"
+
 	"github.com/spf13/cobra"
+
+	"github.com/patrick-ogrady/snowplow/pkg/utils"
 )
 
-// backupCmd represents the backup command
-var backupCmd = &cobra.Command{
-	Use:   "backup",
-	Short: "backup data to google cloud storage",
+// viewCmd represents the view command
+var viewCmd = &cobra.Command{
+	Use:   "view",
+	Short: "print the NodeID of the staking credentials in .avalanchego/staking",
+	RunE:  viewFunc,
 }
 
 func init() {
-	rootCmd.AddCommand(backupCmd)
+	stakingCmd.AddCommand(viewCmd)
 
 	// Here you will define your flags and configuration settings.
 
@@ -41,4 +47,30 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// backupCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+}
+
+func viewFunc(cmd *cobra.Command, args []string) error {
+	// Check if stakingDirectory is empty
+	if _, err := os.Stat(stakingDirectory); os.IsNotExist(err) {
+		return fmt.Errorf("%s is an empty directory", stakingDirectory)
+	}
+
+	// Check if staking key exists
+	if _, err := os.Stat(stakingKeyPath); os.IsNotExist(err) {
+		return fmt.Errorf("staking key at %s does not exist", stakingKeyPath)
+	}
+
+	// Check if staking certificate exists
+	if _, err := os.Stat(stakingCertPath); os.IsNotExist(err) {
+		return fmt.Errorf("staking certificate at %s does not exist", stakingCertPath)
+	}
+
+	// Load NodeID
+	nodeID, err := utils.LoadNodeID(stakingCertPath)
+	if err != nil {
+		return fmt.Errorf("%w: could not calculate NodeID", err)
+	}
+	fmt.Printf(".avalanchego/staking contains credentials for %s\n", utils.PrintableNodeID(nodeID))
+
+	return nil
 }

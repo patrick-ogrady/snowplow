@@ -23,54 +23,54 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/ava-labs/avalanchego/staking"
 	"github.com/spf13/cobra"
 
 	"github.com/patrick-ogrady/snowplow/pkg/utils"
 )
 
-// viewCmd represents the view command
-var viewCmd = &cobra.Command{
-	Use:   "view",
-	Short: "print the NodeID of the staking credentials in .avalanchego/staking",
-	RunE:  viewFunc,
+// createCmd represents the create command
+var createCmd = &cobra.Command{
+	Use:   "create",
+	Short: "generate new staking credentials",
+	RunE:  createFunc,
 }
 
 func init() {
-	rootCmd.AddCommand(viewCmd)
+	stakingCmd.AddCommand(createCmd)
 
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
-	// backupCmd.PersistentFlags().String("foo", "", "A help for foo")
+	// createCmd.PersistentFlags().String("foo", "", "A help for foo")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// backupCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	// createCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
-func viewFunc(cmd *cobra.Command, args []string) error {
-	// Check if stakingDirectory is empty
-	if _, err := os.Stat(stakingDirectory); os.IsNotExist(err) {
-		return fmt.Errorf("%s is an empty directory", stakingDirectory)
+func createFunc(cmd *cobra.Command, args []string) error {
+	// Check if credentialDirectory is empty
+	if _, err := os.Stat(stakingDirectory); !os.IsNotExist(err) {
+		return fmt.Errorf("%s is not an empty directory", stakingDirectory)
 	}
 
-	// Check if staking key exists
-	if _, err := os.Stat(stakingKeyPath); os.IsNotExist(err) {
-		return fmt.Errorf("staking key at %s does not exist", stakingKeyPath)
+	// Generate Staking Key
+	if err := staking.GenerateStakingKeyCert(stakingKeyPath, stakingCertPath); err != nil {
+		return fmt.Errorf("%w: could not create staking credentials", err)
 	}
 
-	// Check if staking certificate exists
-	if _, err := os.Stat(stakingCertPath); os.IsNotExist(err) {
-		return fmt.Errorf("staking certificate at %s does not exist", stakingCertPath)
-	}
-
-	// Load NodeID
+	// Log NodeID
 	nodeID, err := utils.LoadNodeID(stakingCertPath)
 	if err != nil {
 		return fmt.Errorf("%w: could not calculate NodeID", err)
 	}
-	fmt.Printf(".avalanchego/staking contains credentials for %s\n", utils.PrintableNodeID(nodeID))
+	fmt.Printf(
+		"created new credentials for %s in %s\n",
+		utils.PrintableNodeID(nodeID),
+		stakingDirectory,
+	)
 
 	return nil
 }

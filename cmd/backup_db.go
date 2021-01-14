@@ -31,14 +31,14 @@ import (
 
 // backupDbCmd represents the backup db command
 var backupDbCmd = &cobra.Command{
-	Use:   "db [bucket] [name]",
+	Use:   "backup [bucket] [name]",
 	Short: "backup db to google cloud storage",
 	Args:  cobra.ExactArgs(2),
 	RunE:  backupDbFunc,
 }
 
 func init() {
-	backupCmd.AddCommand(backupDbCmd)
+	dbCmd.AddCommand(backupDbCmd)
 
 	// Here you will define your flags and configuration settings.
 

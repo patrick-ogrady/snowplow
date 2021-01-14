@@ -31,14 +31,14 @@ import (
 
 // restoreDbCmd represents the restore db command
 var restoreDbCmd = &cobra.Command{
-	Use:   "db [bucket] [name]",
+	Use:   "restore [bucket] [name]",
 	Short: "restore db from google cloud storage",
 	RunE:  restoreDbFunc,
 	Args:  cobra.ExactArgs(2), // nolint:gomnd
 }
 
 func init() {
-	restoreCmd.AddCommand(restoreDbCmd)
+	dbCmd.AddCommand(restoreDbCmd)
 
 	// Here you will define your flags and configuration settings.
 

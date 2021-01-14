@@ -33,14 +33,14 @@ import (
 
 // backupKeysCmd represents the backup keys command
 var backupKeysCmd = &cobra.Command{
-	Use:   "keys [bucket]",
+	Use:   "backup [bucket]",
 	Short: "backup staking credentials to google cloud storage",
 	Args:  cobra.ExactArgs(1),
 	RunE:  backupKeysFunc,
 }
 
 func init() {
-	backupCmd.AddCommand(backupKeysCmd)
+	stakingCmd.AddCommand(backupKeysCmd)
 
 	// Here you will define your flags and configuration settings.
 

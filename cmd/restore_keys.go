@@ -33,14 +33,14 @@ import (
 
 // restoreKeysCmd represents the restore keys command
 var restoreKeysCmd = &cobra.Command{
-	Use:   "keys [bucket] [node ID]",
+	Use:   "restore [bucket] [node ID]",
 	Short: "restore staking credentials from google cloud storage",
 	RunE:  restoreKeysFunc,
 	Args:  cobra.ExactArgs(2), // nolint:gomnd
 }
 
 func init() {
-	restoreCmd.AddCommand(restoreKeysCmd)
+	stakingCmd.AddCommand(restoreKeysCmd)
 
 	// Here you will define your flags and configuration settings.
 
