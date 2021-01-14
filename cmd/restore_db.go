@@ -23,54 +23,62 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/ava-labs/avalanchego/staking"
 	"github.com/spf13/cobra"
 
-	"github.com/patrick-ogrady/snowplow/pkg/utils"
+	"github.com/patrick-ogrady/snowplow/pkg/compression"
+	"github.com/patrick-ogrady/snowplow/pkg/storage"
 )
 
-// createCmd represents the create command
-var createCmd = &cobra.Command{
-	Use:   "create",
-	Short: "generate new staking credentials",
-	RunE:  createFunc,
+// restoreDbCmd represents the restore db command
+var restoreDbCmd = &cobra.Command{
+	Use:   "restore [bucket] [name]",
+	Short: "restore db from google cloud storage",
+	RunE:  restoreDbFunc,
+	Args:  cobra.ExactArgs(2), // nolint:gomnd
 }
 
 func init() {
-	rootCmd.AddCommand(createCmd)
+	dbCmd.AddCommand(restoreDbCmd)
 
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
-	// createCmd.PersistentFlags().String("foo", "", "A help for foo")
+	// restoreCmd.PersistentFlags().String("foo", "", "A help for foo")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// createCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	// restoreCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
-func createFunc(cmd *cobra.Command, args []string) error {
-	// Check if credentialDirectory is empty
-	if _, err := os.Stat(stakingDirectory); !os.IsNotExist(err) {
-		return fmt.Errorf("%s is not an empty directory", stakingDirectory)
+func restoreDbFunc(cmd *cobra.Command, args []string) error {
+	// Check if dbDirectory is empty
+	if _, err := os.Stat(dbDirectory); !os.IsNotExist(err) {
+		return fmt.Errorf("%s is not empty directory", dbDirectory)
 	}
 
-	// Generate Staking Key
-	if err := staking.GenerateStakingKeyCert(stakingKeyPath, stakingCertPath); err != nil {
-		return fmt.Errorf("%w: could not create staking credentials", err)
+	// Download backup
+	bucket := args[0]
+	name := args[1]
+	tarFilePath := fmt.Sprintf("%s.tar.gz", name)
+	if err := storage.Download(
+		Context,
+		bucket,
+		tarFilePath,
+	); err != nil {
+		return fmt.Errorf("%w: unable to download %s", err, tarFilePath)
 	}
 
-	// Log NodeID
-	nodeID, err := utils.LoadNodeID(stakingCertPath)
-	if err != nil {
-		return fmt.Errorf("%w: could not calculate NodeID", err)
+	// Untar credentials
+	if err := compression.Decompress(tarFilePath, "."); err != nil {
+		return fmt.Errorf("%w: could not decompress %s", err, tarFilePath)
 	}
-	fmt.Printf(
-		"created new credentials for %s in %s\n",
-		utils.PrintableNodeID(nodeID),
-		stakingDirectory,
-	)
 
+	// Cleanup
+	if err := os.Remove(tarFilePath); err != nil {
+		return fmt.Errorf("%w: unable to delete %s", err, tarFilePath)
+	}
+
+	fmt.Printf("successfully restored %s to %s\n", name, dbDirectory)
 	return nil
 }

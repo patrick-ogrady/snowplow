@@ -42,30 +42,31 @@ credentials are kept in `.avalanchego/staking` (relative directory). Note, this
 is different that `avalanchego` which assumes these credentials are in
 `$HOME/.avalanchego/staking`._
 
-### Create Staking Credentials
+### Staking
+#### Create Staking Credentials
 This command will generate new staking credentials in the
 `.avalanchego/staking` folder, if staking credentials do not yet exist in that
 folder.
 
 ```text
-snowplow create
+snowplow staking create
 ```
 
-### View NodeID
+#### View NodeID
 This command will print the NodeID associated with the staking credentials in
 the `.avalanchego/staking` folder, if they exist.
 
 ```text
-snowplow view
+snowplow staking view
 ```
 
-### Encrypt + Backup Credentials
+#### Encrypt + Backup Staking Credentials
 This command encrypts and backs up your staking credentials to the Google Cloud
 Storage bucket of your choosing.
 
 ```text
 export GOOGLE_APPLICATION_CREDENTIALS=path/to/credentials.json
-snowplow backup [bucket]
+snowplow staking backup [bucket]
 ```
 
 _Before running this command, make sure to export your
@@ -73,13 +74,42 @@ _Before running this command, make sure to export your
 Google Cloud's authentication mechanism
 [here](https://cloud.google.com/storage/docs/reference/libraries#setting_up_authentication)._
 
-### Restore + Decrypt Credentials
-This command restores and decrypts the staking credentials of the node of your
+#### Restore + Decrypt Staking Credentials
+This command restores and decrypts the staking credentials of the validator of your
 choosing from the Google Cloud Storage bucket of your choosing.
 
 ```text
 export GOOGLE_APPLICATION_CREDENTIALS=path/to/credentials.json
-snowplow restore [bucket] [node ID]
+snowplow staking restore [bucket] [node ID]
+```
+
+_Before running this command, make sure to export your
+`GOOGLE_APPLICATION_CREDENTIALS` in your terminal. You can learn more about
+Google Cloud's authentication mechanism
+[here](https://cloud.google.com/storage/docs/reference/libraries#setting_up_authentication)._
+
+### DB
+#### Backup DB
+This command backs up your validator db to the Google Cloud
+Storage bucket of your choosing.
+
+```text
+export GOOGLE_APPLICATION_CREDENTIALS=path/to/credentials.json
+snowplow db backup [bucket] [name]
+```
+
+_Before running this command, make sure to export your
+`GOOGLE_APPLICATION_CREDENTIALS` in your terminal. You can learn more about
+Google Cloud's authentication mechanism
+[here](https://cloud.google.com/storage/docs/reference/libraries#setting_up_authentication)._
+
+#### Restore DB
+This command restores the validator db of your choosing from the
+Google Cloud Storage bucket of your choosing.
+
+```text
+export GOOGLE_APPLICATION_CREDENTIALS=path/to/credentials.json
+snowplow db restore [bucket] [name]
 ```
 
 _Before running this command, make sure to export your

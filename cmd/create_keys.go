@@ -21,29 +21,56 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 
+	"github.com/ava-labs/avalanchego/staking"
 	"github.com/spf13/cobra"
+
+	"github.com/patrick-ogrady/snowplow/pkg/utils"
 )
 
-// versionCmd represents the version command
-var versionCmd = &cobra.Command{
-	Use:   "version",
-	Short: "Print out version of snowplow",
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("v0.0.2")
-	},
+// createCmd represents the create command
+var createCmd = &cobra.Command{
+	Use:   "create",
+	Short: "generate new staking credentials",
+	RunE:  createFunc,
 }
 
 func init() {
-	rootCmd.AddCommand(versionCmd)
+	stakingCmd.AddCommand(createCmd)
 
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
-	// versionCmd.PersistentFlags().String("foo", "", "A help for foo")
+	// createCmd.PersistentFlags().String("foo", "", "A help for foo")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// versionCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	// createCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+}
+
+func createFunc(cmd *cobra.Command, args []string) error {
+	// Check if credentialDirectory is empty
+	if _, err := os.Stat(stakingDirectory); !os.IsNotExist(err) {
+		return fmt.Errorf("%s is not an empty directory", stakingDirectory)
+	}
+
+	// Generate Staking Key
+	if err := staking.GenerateStakingKeyCert(stakingKeyPath, stakingCertPath); err != nil {
+		return fmt.Errorf("%w: could not create staking credentials", err)
+	}
+
+	// Log NodeID
+	nodeID, err := utils.LoadNodeID(stakingCertPath)
+	if err != nil {
+		return fmt.Errorf("%w: could not calculate NodeID", err)
+	}
+	fmt.Printf(
+		"created new credentials for %s in %s\n",
+		utils.PrintableNodeID(nodeID),
+		stakingDirectory,
+	)
+
+	return nil
 }

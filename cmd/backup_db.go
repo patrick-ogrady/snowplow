@@ -25,18 +25,20 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/patrick-ogrady/snowplow/pkg/utils"
+	"github.com/patrick-ogrady/snowplow/pkg/compression"
+	"github.com/patrick-ogrady/snowplow/pkg/storage"
 )
 
-// viewCmd represents the view command
-var viewCmd = &cobra.Command{
-	Use:   "view",
-	Short: "print the NodeID of the staking credentials in .avalanchego/staking",
-	RunE:  viewFunc,
+// backupDbCmd represents the backup db command
+var backupDbCmd = &cobra.Command{
+	Use:   "backup [bucket] [name]",
+	Short: "backup db to google cloud storage",
+	Args:  cobra.ExactArgs(2), // nolint:gomnd
+	RunE:  backupDbFunc,
 }
 
 func init() {
-	rootCmd.AddCommand(viewCmd)
+	dbCmd.AddCommand(backupDbCmd)
 
 	// Here you will define your flags and configuration settings.
 
@@ -49,28 +51,34 @@ func init() {
 	// backupCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
-func viewFunc(cmd *cobra.Command, args []string) error {
-	// Check if stakingDirectory is empty
-	if _, err := os.Stat(stakingDirectory); os.IsNotExist(err) {
-		return fmt.Errorf("%s is an empty directory", stakingDirectory)
+func backupDbFunc(cmd *cobra.Command, args []string) error {
+	// Check if dbDirectory is empty
+	if _, err := os.Stat(dbDirectory); os.IsNotExist(err) {
+		return fmt.Errorf("%s is an empty directory", dbDirectory)
 	}
 
-	// Check if staking key exists
-	if _, err := os.Stat(stakingKeyPath); os.IsNotExist(err) {
-		return fmt.Errorf("staking key at %s does not exist", stakingKeyPath)
+	// Tar db
+	name := args[1]
+	tarFile := fmt.Sprintf("%s.tar.gz", name)
+	if err := compression.Compress(dbDirectory, tarFile); err != nil {
+		return fmt.Errorf("%w: could not compress db", err)
 	}
 
-	// Check if staking certificate exists
-	if _, err := os.Stat(stakingCertPath); os.IsNotExist(err) {
-		return fmt.Errorf("staking certificate at %s does not exist", stakingCertPath)
+	// Backup db
+	bucket := args[0]
+	if err := storage.Upload(
+		Context,
+		bucket,
+		tarFile,
+	); err != nil {
+		return fmt.Errorf("%w: unable to upload %s", err, tarFile)
 	}
 
-	// Load NodeID
-	nodeID, err := utils.LoadNodeID(stakingCertPath)
-	if err != nil {
-		return fmt.Errorf("%w: could not calculate NodeID", err)
+	// Cleanup
+	if err := os.Remove(tarFile); err != nil {
+		return fmt.Errorf("%w: unable to delete %s", err, tarFile)
 	}
-	fmt.Printf(".avalanchego/staking contains credentials for %s\n", utils.PrintableNodeID(nodeID))
 
+	fmt.Printf("successfully backed up %s to %s\n", name, bucket)
 	return nil
 }

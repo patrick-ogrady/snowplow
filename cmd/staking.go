@@ -20,30 +20,25 @@
 package cmd
 
 import (
-	"fmt"
-
 	"github.com/spf13/cobra"
 )
 
-// versionCmd represents the version command
-var versionCmd = &cobra.Command{
-	Use:   "version",
-	Short: "Print out version of snowplow",
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("v0.0.2")
-	},
+// stakingCmd represents the staking command
+var stakingCmd = &cobra.Command{
+	Use:   "staking",
+	Short: "staking-related commands",
 }
 
 func init() {
-	rootCmd.AddCommand(versionCmd)
+	rootCmd.AddCommand(stakingCmd)
 
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
-	// versionCmd.PersistentFlags().String("foo", "", "A help for foo")
+	// stakingCmd.PersistentFlags().String("foo", "", "A help for foo")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// versionCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	// stakingCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
