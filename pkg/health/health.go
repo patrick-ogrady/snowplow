@@ -24,12 +24,19 @@ import (
 	"fmt"
 	"sync"
 	"time"
+
+	"github.com/patrick-ogrady/snowplow/pkg/utils"
+)
+
+var (
+	chains = []string{"X", "C", "P"}
 )
 
 // Notifier ...
 type Notifier interface {
 	Alert(message string)
 	Info(message string)
+	Status(message string)
 }
 
 // Client ...
@@ -46,9 +53,7 @@ func (m *Monitor) checkBootstrapped(
 	chain string,
 ) {
 	start := time.Now()
-	for ctx.Err() == nil {
-		time.Sleep(m.interval)
-
+	for utils.ContextSleep(ctx, m.interval) == nil {
 		bootstrapped, err := m.client.IsBootstrapped(chain)
 		if err != nil {
 			m.notifier.Alert(fmt.Sprintf("%s-Chain IsBootstrapped failed: %s", chain, err.Error()))
@@ -72,9 +77,7 @@ func (m *Monitor) checkBootstrapped(
 func (m *Monitor) checkIsHealthy(
 	ctx context.Context,
 ) {
-	for ctx.Err() == nil {
-		time.Sleep(m.interval)
-
+	for utils.ContextSleep(ctx, m.interval) == nil {
 		isHealthy, err := m.client.IsHealthy()
 		if err != nil {
 			m.notifier.Alert(fmt.Sprintf("IsHealthy failed: %s", err.Error()))
@@ -92,9 +95,7 @@ func (m *Monitor) checkIsHealthy(
 func (m *Monitor) checkMinPeers(
 	ctx context.Context,
 ) {
-	for ctx.Err() == nil {
-		time.Sleep(m.interval)
-
+	for utils.ContextSleep(ctx, m.interval) == nil {
 		peers, err := m.client.Peers()
 		if err != nil {
 			m.notifier.Alert(fmt.Sprintf("Peers failed: %s", err.Error()))
@@ -114,6 +115,7 @@ func (m *Monitor) checkMinPeers(
 type Monitor struct {
 	interval  time.Duration
 	threshold time.Duration
+	status    time.Duration
 	notifier  Notifier
 	client    Client
 	minPeers  uint64
@@ -121,13 +123,19 @@ type Monitor struct {
 	bootstrappedMutex sync.Mutex
 	bootstrapped      map[string]time.Time
 	isHealthy         time.Time
-	hasPeers          time.Time
+
+	hasPeers time.Time
+	numPeers uint64
+
+	healthy            bool
+	healthyStatusSince time.Time
 }
 
 // NewMonitor returns a new *Monitor.
 func NewMonitor(
 	interval time.Duration,
 	threshold time.Duration,
+	status time.Duration,
 	notifier Notifier,
 	client Client,
 	minPeers uint64,
@@ -135,6 +143,7 @@ func NewMonitor(
 	return &Monitor{
 		interval:  interval,
 		threshold: threshold,
+		status:    status,
 		notifier:  notifier,
 		client:    client,
 		minPeers:  minPeers,
@@ -144,16 +153,10 @@ func NewMonitor(
 }
 
 func (m *Monitor) checkHealth() bool {
-	if _, ok := m.bootstrapped["X"]; !ok {
-		return false
-	}
-
-	if _, ok := m.bootstrapped["C"]; !ok {
-		return false
-	}
-
-	if _, ok := m.bootstrapped["P"]; !ok {
-		return false
+	for _, chain := range chains {
+		if _, ok := m.bootstrapped[chain]; !ok {
+			return false
+		}
 	}
 
 	if time.Since(m.isHealthy) > m.threshold {
@@ -167,40 +170,49 @@ func (m *Monitor) checkHealth() bool {
 	return true
 }
 
+func (m *Monitor) checkStatus(ctx context.Context) {
+	for utils.ContextSleep(ctx, m.status) == nil {
+		m.notifier.Status(fmt.Sprintf(
+			"healthy (%s): %t peers: %d",
+			time.Since(m.healthyStatusSince),
+			m.healthy,
+			m.numPeers,
+		))
+	}
+}
+
 // MonitorHealth checks a validator's health
 // each interval.
 func (m *Monitor) MonitorHealth(
 	ctx context.Context,
 ) {
-	go m.checkBootstrapped(ctx, "X")
-	go m.checkBootstrapped(ctx, "C")
-	go m.checkBootstrapped(ctx, "P")
+	for _, chain := range chains {
+		go m.checkBootstrapped(ctx, chain)
+	}
 
 	go m.checkIsHealthy(ctx)
 	go m.checkMinPeers(ctx)
+	go m.checkStatus(ctx)
 
-	var healthy bool
-	start := time.Now()
-	for ctx.Err() == nil {
-		time.Sleep(m.interval)
-
+	m.healthyStatusSince = time.Now()
+	for utils.ContextSleep(ctx, m.interval) == nil {
 		thisHealthy := m.checkHealth()
 
-		if (healthy && thisHealthy) || (!healthy && !thisHealthy) {
+		if (m.healthy && thisHealthy) || (!m.healthy && !thisHealthy) {
 			continue
 		}
 
-		if healthy && !thisHealthy {
-			m.notifier.Alert(fmt.Sprintf("not healthy (healthy for %s)", time.Since(start)))
-			healthy = false
-			start = time.Now()
+		if m.healthy && !thisHealthy {
+			m.notifier.Alert("not healthy")
+			m.healthy = false
+			m.healthyStatusSince = time.Now()
 			continue
 		}
 
-		if !healthy && thisHealthy {
-			m.notifier.Info(fmt.Sprintf("healthy after %s", time.Since(start)))
-			healthy = true
-			start = time.Now()
+		if !m.healthy && thisHealthy {
+			m.notifier.Info(fmt.Sprintf("healthy after %s", time.Since(m.healthyStatusSince)))
+			m.healthy = true
+			m.healthyStatusSince = time.Now()
 		}
 	}
 }
