@@ -22,6 +22,8 @@ package client
 import (
 	"time"
 
+	"github.com/ava-labs/avalanchego/network"
+	"github.com/ava-labs/avalanchego/utils/json"
 	"github.com/ava-labs/avalanchego/utils/rpc"
 )
 
@@ -88,8 +90,29 @@ type IsBootstrappedResponse struct {
 // IsBootstrapped ...
 func (c *Client) IsBootstrapped(chain string) (bool, error) {
 	res := &IsBootstrappedResponse{}
-	err := c.infoRequester.SendRequest("isBootstrapped", &IsBootstrappedArgs{
+	if err := c.infoRequester.SendRequest("isBootstrapped", &IsBootstrappedArgs{
 		Chain: chain,
-	}, res)
-	return res.IsBootstrapped, err
+	}, res); err != nil {
+		return false, err
+	}
+
+	return res.IsBootstrapped, nil
+}
+
+// PeersReply are the results from calling Peers
+type PeersReply struct {
+	// Number of elements in [Peers]
+	NumPeers json.Uint64 `json:"numPeers"`
+	// Each element is a peer
+	Peers []network.PeerID `json:"peers"`
+}
+
+// Peers ...
+func (c *Client) Peers() (uint64, error) {
+	res := &PeersReply{}
+	if err := c.infoRequester.SendRequest("peers", struct{}{}, res); err != nil {
+		return 0, err
+	}
+
+	return uint64(res.NumPeers), nil
 }
