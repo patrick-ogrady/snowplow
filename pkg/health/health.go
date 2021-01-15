@@ -210,14 +210,14 @@ func (m *Monitor) MonitorHealth(
 
 	m.completeHealthStatusSince = time.Now()
 	for utils.ContextSleep(ctx, m.healthInterval) == nil {
-		healthyStatus := m.computeHealth()
+		unhealthyStatus := m.computeHealth()
 
-		if (m.completeHealth && len(healthyStatus) == 0) || (!m.completeHealth && len(healthyStatus) > 0) {
+		if (m.completeHealth && len(unhealthyStatus) == 0) || (!m.completeHealth && len(unhealthyStatus) > 0) {
 			continue
 		}
 
-		if m.completeHealth && len(healthyStatus) > 0 {
-			m.notifier.Alert(fmt.Sprintf("not healthy: %s", healthyStatus))
+		if m.completeHealth && len(unhealthyStatus) > 0 {
+			m.notifier.Alert(fmt.Sprintf("not healthy: %s", unhealthyStatus))
 			m.completeHealthMutex.Lock()
 			m.completeHealth = false
 			m.completeHealthStatusSince = time.Now()
@@ -225,7 +225,7 @@ func (m *Monitor) MonitorHealth(
 			continue
 		}
 
-		if !m.completeHealth && len(healthyStatus) == 0 {
+		if !m.completeHealth && len(unhealthyStatus) == 0 {
 			m.notifier.Info(fmt.Sprintf("healthy after %s", time.Since(m.completeHealthStatusSince)))
 			m.completeHealthMutex.Lock()
 			m.completeHealth = true
