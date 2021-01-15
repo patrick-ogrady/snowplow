@@ -71,6 +71,34 @@ func handlePeers(n *mocks.Notifier, c *mocks.Client) {
 	c.On("Peers").Return(uint64(5), nil).Once()
 }
 
+func handleStatus(t *testing.T, n *mocks.Notifier) {
+	n.On("Status", mock.Anything).Run(
+		func(args mock.Arguments) {
+			assert.Contains(t, args[0], "false peers: 0")
+		},
+	).Once()
+	n.On("Status", mock.Anything).Run(
+		func(args mock.Arguments) {
+			assert.Contains(t, args[0], "false peers: 2")
+		},
+	).Once()
+	n.On("Status", mock.Anything).Run(
+		func(args mock.Arguments) {
+			assert.Contains(t, args[0], "false peers: 4")
+		},
+	).Once()
+	n.On("Status", mock.Anything).Run(
+		func(args mock.Arguments) {
+			assert.Contains(t, args[0], "false peers: 5")
+		},
+	).Once()
+	n.On("Status", mock.Anything).Run(
+		func(args mock.Arguments) {
+			assert.Contains(t, args[0], "true peers: 5")
+		},
+	).Once()
+}
+
 func TestMonitorHealth(t *testing.T) {
 	notifier := &mocks.Notifier{}
 	client := &mocks.Client{}
@@ -82,6 +110,7 @@ func TestMonitorHealth(t *testing.T) {
 	}
 	handlePeers(notifier, client)
 	handleIsHealthyChecks(notifier, client)
+	handleStatus(t, notifier)
 
 	notifier.On("Info", mock.Anything).Run(
 		func(args mock.Arguments) {
@@ -96,7 +125,7 @@ func TestMonitorHealth(t *testing.T) {
 		},
 	).Once()
 
-	m := NewMonitor(notifier, client, 10*time.Millisecond, 100*time.Millisecond, 30*time.Millisecond, 5)
+	m := NewMonitor(notifier, client, 10*time.Millisecond, 15*time.Millisecond, 30*time.Millisecond, 5)
 	m.MonitorHealth(ctx)
 
 	time.Sleep(500 * time.Millisecond)
