@@ -27,6 +27,12 @@ import (
 	"github.com/spf13/viper"
 )
 
+const (
+	info   = "INFO"
+	alert  = "ALERT"
+	status = "STATUS"
+)
+
 // Notifier allows for sending
 // messages to a notification channel.
 type Notifier struct {
@@ -72,9 +78,8 @@ func NewNotifier(nodeID string) (*Notifier, error) {
 	}, nil
 }
 
-// Info ...
-func (n *Notifier) Info(message string) {
-	fmt.Printf("NOTIFIER [INFO]: %s\n", message)
+func (n *Notifier) sendMessage(kind string, message string) {
+	fmt.Printf("NOTIFIER [%s]: %s\n", kind, message)
 	if n == nil {
 		return
 	}
@@ -82,7 +87,7 @@ func (n *Notifier) Info(message string) {
 	_, err := n.client.Messages.SendMessage(
 		n.sender,
 		n.recipient,
-		fmt.Sprintf("[INFO](%s): %s", n.nodeID, message),
+		fmt.Sprintf("[%s](%s): %s", kind, n.nodeID, message),
 		nil,
 	)
 	if err != nil {
@@ -90,20 +95,17 @@ func (n *Notifier) Info(message string) {
 	}
 }
 
+// Info ...
+func (n *Notifier) Info(message string) {
+	n.sendMessage(info, message)
+}
+
 // Alert ...
 func (n *Notifier) Alert(message string) {
-	fmt.Printf("NOTIFIER [ALERT]: %s\n", message)
-	if n == nil {
-		return
-	}
+	n.sendMessage(alert, message)
+}
 
-	_, err := n.client.Messages.SendMessage(
-		n.sender,
-		n.recipient,
-		fmt.Sprintf("[ALERT](%s): %s", n.nodeID, message),
-		nil,
-	)
-	if err != nil {
-		fmt.Printf("NOTIFIER [ERROR]: %s\n", err.Error())
-	}
+// Status ...
+func (n *Notifier) Status(message string) {
+	n.sendMessage(status, message)
 }
