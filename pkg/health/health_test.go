@@ -76,9 +76,9 @@ func TestMonitorHealth(t *testing.T) {
 	ctx := context.Background()
 	ctx, cancel := context.WithCancel(ctx)
 
-	handleIsBootstrappedChecks(t, notifier, client, "X")
-	handleIsBootstrappedChecks(t, notifier, client, "C")
-	handleIsBootstrappedChecks(t, notifier, client, "P")
+	for _, chain := range chains {
+		handleIsBootstrappedChecks(t, notifier, client, chain)
+	}
 	handlePeers(t, notifier, client)
 	handleIsHealthyChecks(t, cancel, notifier, client)
 
