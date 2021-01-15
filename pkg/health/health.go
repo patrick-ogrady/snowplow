@@ -149,13 +149,14 @@ func (m *Monitor) checkPeers(
 			continue
 		}
 
-		if peers < m.minPeers {
+		m.numPeers = peers
+		if m.numPeers < m.minPeers {
 			continue
 		}
 
 		if !seenMinPeers {
 			seenMinPeers = true
-			m.notifier.Info(fmt.Sprintf("connected peers (%d) >= %d", peers, m.minPeers))
+			m.notifier.Info(fmt.Sprintf("connected peers (%d) >= %d", m.numPeers, m.minPeers))
 		}
 
 		m.peers = time.Now()
