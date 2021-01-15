@@ -22,37 +22,87 @@ package health
 import (
 	"context"
 	"fmt"
+	"sync"
 	"time"
+
+	"github.com/patrick-ogrady/snowplow/pkg/utils"
+)
+
+var (
+	chains = []string{"X", "C", "P"}
 )
 
 // Notifier ...
 type Notifier interface {
 	Alert(message string)
 	Info(message string)
+	Status(message string)
 }
 
 // Client ...
 type Client interface {
 	IsHealthy() (bool, error)
 	IsBootstrapped(chain string) (bool, error)
+	Peers() (uint64, error)
+}
+
+// Monitor tracks the health
+// of an avalanche validator.
+type Monitor struct {
+	notifier Notifier
+	client   Client
+
+	healthInterval time.Duration
+	statusInterval time.Duration
+
+	unhealthyThreshold time.Duration
+	minPeers           uint64
+
+	isBootstrappedMutex sync.Mutex
+	isBootstrapped      map[string]time.Time
+
+	isHealthy time.Time
+
+	peers    time.Time
+	numPeers uint64
+
+	completeHealthMutex       sync.Mutex
+	completeHealth            bool
+	completeHealthStatusSince time.Time
+}
+
+// NewMonitor returns a new *Monitor.
+func NewMonitor(
+	notifier Notifier,
+	client Client,
+	healthInterval time.Duration,
+	statusInterval time.Duration,
+	unhealthyThreshold time.Duration,
+	minPeers uint64,
+) *Monitor {
+	return &Monitor{
+		notifier:           notifier,
+		client:             client,
+		healthInterval:     healthInterval,
+		unhealthyThreshold: unhealthyThreshold,
+		statusInterval:     statusInterval,
+		minPeers:           minPeers,
+
+		isBootstrapped: make(map[string]time.Time),
+	}
 }
 
 // checkBootstrapped loops on the IsBootstrapped
 // check for a particular chain.
-func checkBootstrapped(
+func (m *Monitor) checkIsBootstrapped(
 	ctx context.Context,
-	interval time.Duration,
 	chain string,
-	notifier Notifier,
-	client Client,
 ) {
 	start := time.Now()
-	for ctx.Err() == nil {
-		time.Sleep(interval)
-
-		bootstrapped, err := client.IsBootstrapped(chain)
+	for utils.ContextSleep(ctx, m.healthInterval) == nil {
+		bootstrapped, err := m.client.IsBootstrapped(chain)
 		if err != nil {
-			notifier.Alert(fmt.Sprintf("%s-Chain IsBootstrapped check failed: %s", chain, err.Error()))
+			m.notifier.Alert(fmt.Sprintf("%s-Chain IsBootstrapped failed: %s", chain, err.Error()))
 			continue
 		}
 
@@ -60,50 +110,127 @@ func checkBootstrapped(
 			continue
 		}
 
-		notifier.Info(fmt.Sprintf("%s-Chain bootstrapped after %s", chain, time.Since(start)))
+		m.notifier.Info(fmt.Sprintf("%s-Chain bootstrapped after %s", chain, time.Since(start)))
+		m.isBootstrappedMutex.Lock()
+		m.isBootstrapped[chain] = time.Now()
+		m.isBootstrappedMutex.Unlock()
 		return
 	}
 }
 
-// MonitorHealth checks a node's health
-// each interval.
-func MonitorHealth(
+// checkIsHealthy loops on the IsHealthy
+// check.
+func (m *Monitor) checkIsHealthy(
 	ctx context.Context,
-	interval time.Duration,
-	notifier Notifier,
-	client Client,
 ) {
-	go checkBootstrapped(ctx, interval, "X", notifier, client)
-	go checkBootstrapped(ctx, interval, "C", notifier, client)
-	go checkBootstrapped(ctx, interval, "P", notifier, client)
-
-	var healthy bool
-	start := time.Now()
-	for ctx.Err() == nil {
-		time.Sleep(interval)
-
-		thisHealthy, err := client.IsHealthy()
+	for utils.ContextSleep(ctx, m.healthInterval) == nil {
+		isHealthy, err := m.client.IsHealthy()
 		if err != nil {
-			if healthy { // only send alert if we have already become healthy
-				notifier.Alert(fmt.Sprintf("IsHealthy check failed: %s", err.Error()))
-				healthy = false
-				start = time.Now()
-			}
-
+			m.notifier.Alert(fmt.Sprintf("IsHealthy failed: %s", err.Error()))
 			continue
 		}
 
-		if healthy && !thisHealthy {
-			notifier.Alert(fmt.Sprintf("not healthy (healthy for %s)", time.Since(start)))
-			healthy = false
-			start = time.Now()
+		if !isHealthy {
 			continue
 		}
 
-		if !healthy && thisHealthy {
-			notifier.Info(fmt.Sprintf("healthy after %s", time.Since(start)))
-			healthy = true
-			start = time.Now()
+		m.isHealthy = time.Now()
+	}
+}
+
+func (m *Monitor) checkPeers(
+	ctx context.Context,
+) {
+	var seenMinPeers bool
+	for utils.ContextSleep(ctx, m.healthInterval) == nil {
+		peers, err := m.client.Peers()
+		if err != nil {
+			m.notifier.Alert(fmt.Sprintf("Peers failed: %s", err.Error()))
+			continue
+		}
+
+		if peers < m.minPeers {
+			continue
+		}
+
+		if !seenMinPeers {
+			seenMinPeers = true
+			m.notifier.Info(fmt.Sprintf("connected peers (%d) >= %d", peers, m.minPeers))
+		}
+
+		m.peers = time.Now()
+	}
+}
+
+func (m *Monitor) computeHealth() string {
+	m.isBootstrappedMutex.Lock()
+	defer m.isBootstrappedMutex.Unlock()
+	for _, chain := range chains {
+		if _, ok := m.isBootstrapped[chain]; !ok {
+			return fmt.Sprintf("%s-Chain isBootstrapped=false", chain)
+		}
+	}
+
+	if time.Since(m.isHealthy) > m.unhealthyThreshold {
+		return fmt.Sprintf("isHealthy=false for %s", time.Since(m.isHealthy))
+	}
+
+	if time.Since(m.peers) > m.unhealthyThreshold {
+		return fmt.Sprintf("peers < %d for %s", m.minPeers, time.Since(m.peers))
+	}
+
+	return ""
+}
+
+func (m *Monitor) monitorStatus(ctx context.Context) {
+	for utils.ContextSleep(ctx, m.statusInterval) == nil {
+		m.completeHealthMutex.Lock()
+		m.notifier.Status(fmt.Sprintf(
+			"healthy(%s): %t peers: %d",
+			time.Since(m.completeHealthStatusSince),
+			m.completeHealth,
+			m.numPeers,
+		))
+		m.completeHealthMutex.Unlock()
+	}
+}
+
+// MonitorHealth checks a validator's health
+// each interval.
+func (m *Monitor) MonitorHealth(
+	ctx context.Context,
+) {
+	go m.monitorStatus(ctx)
+
+	for _, chain := range chains {
+		go m.checkIsBootstrapped(ctx, chain)
+	}
+	go m.checkIsHealthy(ctx)
+	go m.checkPeers(ctx)
+
+	m.completeHealthStatusSince = time.Now()
+	for utils.ContextSleep(ctx, m.healthInterval) == nil {
+		unhealthyStatus := m.computeHealth()
+
+		if (m.completeHealth && len(unhealthyStatus) == 0) || (!m.completeHealth && len(unhealthyStatus) > 0) {
+			continue
+		}
+
+		if m.completeHealth && len(unhealthyStatus) > 0 {
+			m.notifier.Alert(fmt.Sprintf("not healthy: %s", unhealthyStatus))
+			m.completeHealthMutex.Lock()
+			m.completeHealth = false
+			m.completeHealthStatusSince = time.Now()
+			m.completeHealthMutex.Unlock()
+			continue
+		}
+
+		if !m.completeHealth && len(unhealthyStatus) == 0 {
+			m.notifier.Info(fmt.Sprintf("healthy after %s", time.Since(m.completeHealthStatusSince)))
+			m.completeHealthMutex.Lock()
+			m.completeHealth = true
+			m.completeHealthStatusSince = time.Now()
+			m.completeHealthMutex.Unlock()
 		}
 	}
 }

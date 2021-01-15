@@ -17,54 +17,26 @@
 // IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-package avalanchego
+package utils
 
 import (
 	"context"
-	"os"
-	"os/exec"
 	"time"
-
-	"github.com/patrick-ogrady/snowplow/pkg/client"
-	"github.com/patrick-ogrady/snowplow/pkg/health"
-	"github.com/patrick-ogrady/snowplow/pkg/notifier"
 )
 
-const (
-	avalanchegoBin  = "/app/avalanchego"
-	avalancheConfig = "/app/avalanchego-config.json"
+// ContextSleep sleeps for the provided duration and returns
+// an error if context is canceled.
+func ContextSleep(ctx context.Context, duration time.Duration) error {
+	timer := time.NewTimer(duration)
+	defer timer.Stop()
 
-	// TODO: move to config file
-	healthInterval     = 10 * time.Second
-	statusInterval     = 1 * time.Hour
-	unhealthyThreshold = 1 * time.Minute
-	minPeers           = 400
-)
+	for {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
 
-// Run starts an avalanchego node.
-func Run(ctx context.Context, nodeID string, notifier *notifier.Notifier) error {
-	cmd := exec.Command(
-		avalanchegoBin,
-		"--config-file",
-		avalancheConfig,
-	)
-	cmd.Stdin = os.Stdin
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-
-	// Send interrupt signal if context is
-	// done
-	go func() {
-		<-ctx.Done()
-		if cmd.Process != nil {
-			_ = cmd.Process.Signal(os.Interrupt)
+		case <-timer.C:
+			return nil
 		}
-	}()
-
-	// Periodically check health and send
-	// notifications as needed
-	m := health.NewMonitor(notifier, client.NewClient(), healthInterval, statusInterval, unhealthyThreshold, minPeers)
-	go m.MonitorHealth(ctx)
-
-	return cmd.Run()
+	}
 }
