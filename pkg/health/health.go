@@ -66,6 +66,7 @@ type Monitor struct {
 	peers    time.Time
 	numPeers uint64
 
+	completeHealthMutex       sync.Mutex
 	completeHealth            bool
 	completeHealthStatusSince time.Time
 }
@@ -183,12 +184,14 @@ func (m *Monitor) computeHealth() string {
 
 func (m *Monitor) monitorStatus(ctx context.Context) {
 	for utils.ContextSleep(ctx, m.statusInterval) == nil {
+		m.completeHealthMutex.Lock()
 		m.notifier.Status(fmt.Sprintf(
 			"healthy(%s): %t peers: %d",
 			time.Since(m.completeHealthStatusSince),
 			m.completeHealth,
 			m.numPeers,
 		))
+		m.completeHealthMutex.Unlock()
 	}
 }
 
@@ -215,15 +218,19 @@ func (m *Monitor) MonitorHealth(
 
 		if m.completeHealth && len(healthyStatus) > 0 {
 			m.notifier.Alert(fmt.Sprintf("not healthy: %s", healthyStatus))
+			m.completeHealthMutex.Lock()
 			m.completeHealth = false
 			m.completeHealthStatusSince = time.Now()
+			m.completeHealthMutex.Unlock()
 			continue
 		}
 
 		if !m.completeHealth && len(healthyStatus) == 0 {
 			m.notifier.Info(fmt.Sprintf("healthy after %s", time.Since(m.completeHealthStatusSince)))
+			m.completeHealthMutex.Lock()
 			m.completeHealth = true
 			m.completeHealthStatusSince = time.Now()
+			m.completeHealthMutex.Unlock()
 		}
 	}
 }
