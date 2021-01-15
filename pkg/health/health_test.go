@@ -121,6 +121,7 @@ func TestMonitorHealth(t *testing.T) {
 	notifier.On("Alert", mock.Anything).Run(
 		func(args mock.Arguments) {
 			assert.Contains(t, args[0], "not healthy: isHealthy=false for")
+			time.Sleep(2 * time.Millisecond) // ensure all calls made
 			cancel()
 		},
 	).Once()
