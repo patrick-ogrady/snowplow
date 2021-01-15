@@ -18,3 +18,8 @@ func (_m *Notifier) Alert(message string) {
 func (_m *Notifier) Info(message string) {
 	_m.Called(message)
 }
+
+// Status provides a mock function with given fields: message
+func (_m *Notifier) Status(message string) {
+	_m.Called(message)
+}

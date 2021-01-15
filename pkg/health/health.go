@@ -46,14 +46,59 @@ type Client interface {
 	Peers() (uint64, error)
 }
 
+// Monitor tracks the health
+// of an avalanche validator.
+type Monitor struct {
+	notifier Notifier
+	client   Client
+
+	healthInterval time.Duration
+	statusInterval time.Duration
+
+	unhealthyThreshold time.Duration
+	minPeers           uint64
+
+	isBootstrappedMutex sync.Mutex
+	isBootstrapped      map[string]time.Time
+
+	isHealthy time.Time
+
+	peers    time.Time
+	numPeers uint64
+
+	completeHealth            bool
+	completeHealthStatusSince time.Time
+}
+
+// NewMonitor returns a new *Monitor.
+func NewMonitor(
+	notifier Notifier,
+	client Client,
+	healthInterval time.Duration,
+	statusInterval time.Duration,
+	unhealthyThreshold time.Duration,
+	minPeers uint64,
+) *Monitor {
+	return &Monitor{
+		notifier:           notifier,
+		client:             client,
+		healthInterval:     healthInterval,
+		unhealthyThreshold: unhealthyThreshold,
+		statusInterval:     statusInterval,
+		minPeers:           minPeers,
+
+		isBootstrapped: make(map[string]time.Time),
+	}
+}
+
 // checkBootstrapped loops on the IsBootstrapped
 // check for a particular chain.
-func (m *Monitor) checkBootstrapped(
+func (m *Monitor) checkIsBootstrapped(
 	ctx context.Context,
 	chain string,
 ) {
 	start := time.Now()
-	for utils.ContextSleep(ctx, m.interval) == nil {
+	for utils.ContextSleep(ctx, m.healthInterval) == nil {
 		bootstrapped, err := m.client.IsBootstrapped(chain)
 		if err != nil {
 			m.notifier.Alert(fmt.Sprintf("%s-Chain IsBootstrapped failed: %s", chain, err.Error()))
@@ -65,9 +110,9 @@ func (m *Monitor) checkBootstrapped(
 		}
 
 		m.notifier.Info(fmt.Sprintf("%s-Chain bootstrapped after %s", chain, time.Since(start)))
-		m.bootstrappedMutex.Lock()
-		m.bootstrapped[chain] = time.Now()
-		m.bootstrappedMutex.Unlock()
+		m.isBootstrappedMutex.Lock()
+		m.isBootstrapped[chain] = time.Now()
+		m.isBootstrappedMutex.Unlock()
 		return
 	}
 }
@@ -77,7 +122,7 @@ func (m *Monitor) checkBootstrapped(
 func (m *Monitor) checkIsHealthy(
 	ctx context.Context,
 ) {
-	for utils.ContextSleep(ctx, m.interval) == nil {
+	for utils.ContextSleep(ctx, m.healthInterval) == nil {
 		isHealthy, err := m.client.IsHealthy()
 		if err != nil {
 			m.notifier.Alert(fmt.Sprintf("IsHealthy failed: %s", err.Error()))
@@ -92,10 +137,10 @@ func (m *Monitor) checkIsHealthy(
 	}
 }
 
-func (m *Monitor) checkMinPeers(
+func (m *Monitor) checkPeers(
 	ctx context.Context,
 ) {
-	for utils.ContextSleep(ctx, m.interval) == nil {
+	for utils.ContextSleep(ctx, m.healthInterval) == nil {
 		peers, err := m.client.Peers()
 		if err != nil {
 			m.notifier.Alert(fmt.Sprintf("Peers failed: %s", err.Error()))
@@ -106,76 +151,36 @@ func (m *Monitor) checkMinPeers(
 			continue
 		}
 
-		m.hasPeers = time.Now()
+		m.peers = time.Now()
 	}
 }
 
-// Monitor tracks the health
-// of an avalanche validator.
-type Monitor struct {
-	interval  time.Duration
-	threshold time.Duration
-	status    time.Duration
-	notifier  Notifier
-	client    Client
-	minPeers  uint64
-
-	bootstrappedMutex sync.Mutex
-	bootstrapped      map[string]time.Time
-	isHealthy         time.Time
-
-	hasPeers time.Time
-	numPeers uint64
-
-	healthy            bool
-	healthyStatusSince time.Time
-}
-
-// NewMonitor returns a new *Monitor.
-func NewMonitor(
-	interval time.Duration,
-	threshold time.Duration,
-	status time.Duration,
-	notifier Notifier,
-	client Client,
-	minPeers uint64,
-) *Monitor {
-	return &Monitor{
-		interval:  interval,
-		threshold: threshold,
-		status:    status,
-		notifier:  notifier,
-		client:    client,
-		minPeers:  minPeers,
-
-		bootstrapped: make(map[string]time.Time),
-	}
-}
-
-func (m *Monitor) checkHealth() bool {
+func (m *Monitor) computeHealth() bool {
+	m.isBootstrappedMutex.Lock()
+	defer m.isBootstrappedMutex.Unlock()
 	for _, chain := range chains {
-		if _, ok := m.bootstrapped[chain]; !ok {
+		if _, ok := m.isBootstrapped[chain]; !ok {
 			return false
 		}
 	}
 
-	if time.Since(m.isHealthy) > m.threshold {
+	if time.Since(m.isHealthy) > m.unhealthyThreshold {
 		return false
 	}
 
-	if time.Since(m.hasPeers) > m.threshold {
+	if time.Since(m.peers) > m.unhealthyThreshold {
 		return false
 	}
 
 	return true
 }
 
-func (m *Monitor) checkStatus(ctx context.Context) {
-	for utils.ContextSleep(ctx, m.status) == nil {
+func (m *Monitor) monitorStatus(ctx context.Context) {
+	for utils.ContextSleep(ctx, m.statusInterval) == nil {
 		m.notifier.Status(fmt.Sprintf(
-			"healthy (%s): %t peers: %d",
-			time.Since(m.healthyStatusSince),
-			m.healthy,
+			"healthy(%s): %t peers: %d",
+			time.Since(m.completeHealthStatusSince),
+			m.completeHealth,
 			m.numPeers,
 		))
 	}
@@ -186,33 +191,33 @@ func (m *Monitor) checkStatus(ctx context.Context) {
 func (m *Monitor) MonitorHealth(
 	ctx context.Context,
 ) {
+	go m.monitorStatus(ctx)
+
 	for _, chain := range chains {
-		go m.checkBootstrapped(ctx, chain)
+		go m.checkIsBootstrapped(ctx, chain)
 	}
-
 	go m.checkIsHealthy(ctx)
-	go m.checkMinPeers(ctx)
-	go m.checkStatus(ctx)
+	go m.checkPeers(ctx)
 
-	m.healthyStatusSince = time.Now()
-	for utils.ContextSleep(ctx, m.interval) == nil {
-		thisHealthy := m.checkHealth()
+	m.completeHealthStatusSince = time.Now()
+	for utils.ContextSleep(ctx, m.healthInterval) == nil {
+		thisHealthy := m.computeHealth()
 
-		if (m.healthy && thisHealthy) || (!m.healthy && !thisHealthy) {
+		if (m.completeHealth && thisHealthy) || (!m.completeHealth && !thisHealthy) {
 			continue
 		}
 
-		if m.healthy && !thisHealthy {
+		if m.completeHealth && !thisHealthy {
 			m.notifier.Alert("not healthy")
-			m.healthy = false
-			m.healthyStatusSince = time.Now()
+			m.completeHealth = false
+			m.completeHealthStatusSince = time.Now()
 			continue
 		}
 
-		if !m.healthy && thisHealthy {
-			m.notifier.Info(fmt.Sprintf("healthy after %s", time.Since(m.healthyStatusSince)))
-			m.healthy = true
-			m.healthyStatusSince = time.Now()
+		if !m.completeHealth && thisHealthy {
+			m.notifier.Info(fmt.Sprintf("healthy after %s", time.Since(m.completeHealthStatusSince)))
+			m.completeHealth = true
+			m.completeHealthStatusSince = time.Now()
 		}
 	}
 }
