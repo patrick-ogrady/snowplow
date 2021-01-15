@@ -32,10 +32,10 @@ import (
 	mocks "github.com/patrick-ogrady/snowplow/mocks/pkg/health"
 )
 
-func handleBootstrappedChecks(t *testing.T, n *mocks.Notifier, c *mocks.Client, chain string) {
+func handleIsBootstrappedChecks(t *testing.T, n *mocks.Notifier, c *mocks.Client, chain string) {
 	c.On("IsBootstrapped", chain).Return(false, nil).Once()
 	c.On("IsBootstrapped", chain).Return(false, errors.New("bad")).Once()
-	n.On("Alert", fmt.Sprintf("%s-Chain IsBootstrapped check failed: bad", chain)).Once()
+	n.On("Alert", fmt.Sprintf("%s-Chain IsBootstrapped failed: bad", chain)).Once()
 	c.On("IsBootstrapped", chain).Return(true, nil).Once()
 	n.On("Info", mock.Anything).Run(
 		func(args mock.Arguments) {
@@ -46,45 +46,28 @@ func handleBootstrappedChecks(t *testing.T, n *mocks.Notifier, c *mocks.Client, 
 	).Once()
 }
 
-func handleHealthChecks(t *testing.T, cancel context.CancelFunc, n *mocks.Notifier, c *mocks.Client) {
-	c.On("IsHealthy").Return(false, nil).Once()
-	c.On("IsHealthy").Return(false, nil).Once()
+func handleIsHealthyChecks(t *testing.T, cancel context.CancelFunc, n *mocks.Notifier, c *mocks.Client) {
 	c.On("IsHealthy").Return(false, nil).Once()
 	c.On("IsHealthy").Return(true, nil).Once()
-	n.On("Info", mock.Anything).Run(
-		func(args mock.Arguments) {
-			assert.Contains(t, args[0], "healthy after")
-		},
-	).Once()
 	c.On("IsHealthy").Return(false, errors.New("unable to complete health check")).Once()
-	n.On("Alert", mock.Anything).Run(
-		func(args mock.Arguments) {
-			assert.Contains(t, args[0], "IsHealthy check failed: unable to complete health check")
-		},
-	).Once()
+	n.On("Alert", "IsHealthy failed: unable to complete health check").Once()
 	c.On("IsHealthy").Return(true, nil).Once()
-	n.On("Info", mock.Anything).Run(
-		func(args mock.Arguments) {
-			assert.Contains(t, args[0], "healthy after")
-		},
-	).Once()
+	// should not send a healthy recovery because of threshold
+	c.On("IsHealthy").Return(true, nil).Once()
 	c.On("IsHealthy").Return(false, nil).Once()
-	n.On("Alert", mock.Anything).Run(
-		func(args mock.Arguments) {
-			assert.Contains(t, args[0], "not healthy")
-		},
-	).Once()
-	c.On("IsHealthy").Return(true, nil).Once()
-	n.On("Info", mock.Anything).Run(
-		func(args mock.Arguments) {
-			assert.Contains(t, args[0], "healthy after")
-		},
-	).Once()
-	c.On("IsHealthy").Return(true, nil).Run(
-		func(args mock.Arguments) {
-			cancel()
-		},
-	).Once()
+	c.On("IsHealthy").Return(false, nil).Once()
+	c.On("IsHealthy").Return(false, nil).Once()
+}
+
+func handlePeers(t *testing.T, n *mocks.Notifier, c *mocks.Client) {
+	c.On("Peers").Return(uint64(0), nil).Once()
+	c.On("Peers").Return(uint64(2), nil).Once()
+	c.On("Peers").Return(uint64(5), nil).Once()
+	c.On("Peers").Return(uint64(5), nil).Once()
+	c.On("Peers").Return(uint64(5), nil).Once()
+	c.On("Peers").Return(uint64(5), nil).Once()
+	c.On("Peers").Return(uint64(5), nil).Once()
+	c.On("Peers").Return(uint64(5), nil).Once()
 }
 
 func TestMonitorHealth(t *testing.T) {
@@ -93,17 +76,29 @@ func TestMonitorHealth(t *testing.T) {
 	ctx := context.Background()
 	ctx, cancel := context.WithCancel(ctx)
 
-	handleBootstrappedChecks(t, notifier, client, "X")
-	handleBootstrappedChecks(t, notifier, client, "C")
-	handleBootstrappedChecks(t, notifier, client, "P")
+	handleIsBootstrappedChecks(t, notifier, client, "X")
+	handleIsBootstrappedChecks(t, notifier, client, "C")
+	handleIsBootstrappedChecks(t, notifier, client, "P")
+	handlePeers(t, notifier, client)
+	handleIsHealthyChecks(t, cancel, notifier, client)
 
-	handleHealthChecks(t, cancel, notifier, client)
+	notifier.On("Info", mock.Anything).Run(
+		func(args mock.Arguments) {
+			assert.Contains(t, args[0], "healthy after")
+		},
+	).Once()
 
-	MonitorHealth(ctx, 10*time.Millisecond, notifier, client)
+	notifier.On("Alert", mock.Anything).Run(
+		func(args mock.Arguments) {
+			assert.Contains(t, args[0], "not healthy: isHealthy=false for")
+			cancel()
+		},
+	).Once()
+
+	m := NewMonitor(notifier, client, 10*time.Millisecond, 100*time.Millisecond, 30*time.Millisecond, 5)
+	m.MonitorHealth(ctx)
 
 	time.Sleep(500 * time.Millisecond)
-	cancel()
-
 	client.AssertExpectations(t)
 	notifier.AssertExpectations(t)
 }

@@ -155,24 +155,24 @@ func (m *Monitor) checkPeers(
 	}
 }
 
-func (m *Monitor) computeHealth() bool {
+func (m *Monitor) computeHealth() string {
 	m.isBootstrappedMutex.Lock()
 	defer m.isBootstrappedMutex.Unlock()
 	for _, chain := range chains {
 		if _, ok := m.isBootstrapped[chain]; !ok {
-			return false
+			return fmt.Sprintf("%s-Chain isBootstrapped=false", chain)
 		}
 	}
 
 	if time.Since(m.isHealthy) > m.unhealthyThreshold {
-		return false
+		return fmt.Sprintf("isHealthy=false for %s", time.Since(m.isHealthy))
 	}
 
 	if time.Since(m.peers) > m.unhealthyThreshold {
-		return false
+		return fmt.Sprintf("peers < %d for %s", m.minPeers, time.Since(m.peers))
 	}
 
-	return true
+	return ""
 }
 
 func (m *Monitor) monitorStatus(ctx context.Context) {
@@ -201,20 +201,20 @@ func (m *Monitor) MonitorHealth(
 
 	m.completeHealthStatusSince = time.Now()
 	for utils.ContextSleep(ctx, m.healthInterval) == nil {
-		thisHealthy := m.computeHealth()
+		healthyStatus := m.computeHealth()
 
-		if (m.completeHealth && thisHealthy) || (!m.completeHealth && !thisHealthy) {
+		if (m.completeHealth && len(healthyStatus) == 0) || (!m.completeHealth && len(healthyStatus) > 0) {
 			continue
 		}
 
-		if m.completeHealth && !thisHealthy {
-			m.notifier.Alert("not healthy")
+		if m.completeHealth && len(healthyStatus) > 0 {
+			m.notifier.Alert(fmt.Sprintf("not healthy: %s", healthyStatus))
 			m.completeHealth = false
 			m.completeHealthStatusSince = time.Now()
 			continue
 		}
 
-		if !m.completeHealth && thisHealthy {
+		if !m.completeHealth && len(healthyStatus) == 0 {
 			m.notifier.Info(fmt.Sprintf("healthy after %s", time.Since(m.completeHealthStatusSince)))
 			m.completeHealth = true
 			m.completeHealthStatusSince = time.Now()

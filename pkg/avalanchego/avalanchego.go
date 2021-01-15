@@ -34,7 +34,11 @@ const (
 	avalanchegoBin  = "/app/avalanchego"
 	avalancheConfig = "/app/avalanchego-config.json"
 
-	healthCheckInterval = time.Second * 10
+	// TODO: move to config file
+	healthInterval     = 10 * time.Second
+	statusInterval     = 1 * time.Hour
+	unhealthyThreshold = 1 * time.Minute
+	minPeers           = 400
 )
 
 // Run starts an avalanchego node.
@@ -59,12 +63,8 @@ func Run(ctx context.Context, nodeID string, notifier *notifier.Notifier) error 
 
 	// Periodically check health and send
 	// notifications as needed
-	go health.MonitorHealth(
-		ctx,
-		healthCheckInterval,
-		notifier,
-		client.NewClient(),
-	)
+	m := health.NewMonitor(notifier, client.NewClient(), healthInterval, statusInterval, unhealthyThreshold, minPeers)
+	go m.MonitorHealth(ctx)
 
 	return cmd.Run()
 }
