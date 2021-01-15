@@ -140,6 +140,7 @@ func (m *Monitor) checkIsHealthy(
 func (m *Monitor) checkPeers(
 	ctx context.Context,
 ) {
+	var seenMinPeers bool
 	for utils.ContextSleep(ctx, m.healthInterval) == nil {
 		peers, err := m.client.Peers()
 		if err != nil {
@@ -149,6 +150,11 @@ func (m *Monitor) checkPeers(
 
 		if peers < m.minPeers {
 			continue
+		}
+
+		if !seenMinPeers {
+			seenMinPeers = true
+			m.notifier.Info(fmt.Sprintf("connected peers (%d) >= %d", peers, m.minPeers))
 		}
 
 		m.peers = time.Now()

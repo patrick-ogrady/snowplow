@@ -46,7 +46,7 @@ func handleIsBootstrappedChecks(t *testing.T, n *mocks.Notifier, c *mocks.Client
 	).Once()
 }
 
-func handleIsHealthyChecks(t *testing.T, cancel context.CancelFunc, n *mocks.Notifier, c *mocks.Client) {
+func handleIsHealthyChecks(n *mocks.Notifier, c *mocks.Client) {
 	c.On("IsHealthy").Return(false, nil).Once()
 	c.On("IsHealthy").Return(true, nil).Once()
 	c.On("IsHealthy").Return(false, errors.New("unable to complete health check")).Once()
@@ -59,12 +59,13 @@ func handleIsHealthyChecks(t *testing.T, cancel context.CancelFunc, n *mocks.Not
 	c.On("IsHealthy").Return(false, nil).Once()
 }
 
-func handlePeers(t *testing.T, n *mocks.Notifier, c *mocks.Client) {
+func handlePeers(n *mocks.Notifier, c *mocks.Client) {
 	c.On("Peers").Return(uint64(0), nil).Once()
 	c.On("Peers").Return(uint64(2), nil).Once()
+	c.On("Peers").Return(uint64(3), nil).Once()
+	c.On("Peers").Return(uint64(4), nil).Once()
 	c.On("Peers").Return(uint64(5), nil).Once()
-	c.On("Peers").Return(uint64(5), nil).Once()
-	c.On("Peers").Return(uint64(5), nil).Once()
+	n.On("Info", "connected peers (5) >= 5").Once()
 	c.On("Peers").Return(uint64(5), nil).Once()
 	c.On("Peers").Return(uint64(5), nil).Once()
 	c.On("Peers").Return(uint64(5), nil).Once()
@@ -79,8 +80,8 @@ func TestMonitorHealth(t *testing.T) {
 	for _, chain := range chains {
 		handleIsBootstrappedChecks(t, notifier, client, chain)
 	}
-	handlePeers(t, notifier, client)
-	handleIsHealthyChecks(t, cancel, notifier, client)
+	handlePeers(notifier, client)
+	handleIsHealthyChecks(notifier, client)
 
 	notifier.On("Info", mock.Anything).Run(
 		func(args mock.Arguments) {
