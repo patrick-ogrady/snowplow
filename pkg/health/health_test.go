@@ -119,6 +119,7 @@ func TestMonitorHealth(t *testing.T) {
 	notifier.On("Alert", mock.Anything).Run(
 		func(args mock.Arguments) {
 			assert.Contains(t, args[0], "not healthy: isHealthy=false for")
+			time.Sleep(10 * time.Millisecond)
 			cancel()
 		},
 	).Once()
