@@ -4,7 +4,7 @@ go 1.13
 
 require (
 	cloud.google.com/go/storage v1.0.0
-	github.com/ava-labs/avalanchego v1.1.2
+	github.com/ava-labs/avalanchego v1.1.3
 	github.com/cheggaaa/pb/v3 v3.0.5
 	github.com/kevinburke/go-types v0.0.0-20201208005256-aee49f568a20 // indirect
 	github.com/kevinburke/go.uuid v1.2.0 // indirect
