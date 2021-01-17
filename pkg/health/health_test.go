@@ -23,6 +23,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"testing"
 	"time"
 
@@ -71,32 +72,20 @@ func handlePeers(n *mocks.Notifier, c *mocks.Client) {
 	c.On("Peers").Return(uint64(5), nil).Once()
 }
 
-func handleStatus(t *testing.T, n *mocks.Notifier) {
+func handleStatus(ctx context.Context, t *testing.T, n *mocks.Notifier) {
+	var seenTrue bool
 	n.On("Status", mock.Anything).Run(
 		func(args mock.Arguments) {
-			assert.Contains(t, args[0], "false peers: 0")
+			if strings.Contains(args[0].(string), "true") {
+				seenTrue = true
+			}
 		},
-	).Once()
-	n.On("Status", mock.Anything).Run(
-		func(args mock.Arguments) {
-			assert.Contains(t, args[0], "false peers: 2")
-		},
-	).Once()
-	n.On("Status", mock.Anything).Run(
-		func(args mock.Arguments) {
-			assert.Contains(t, args[0], "false peers: 4")
-		},
-	).Once()
-	n.On("Status", mock.Anything).Run(
-		func(args mock.Arguments) {
-			assert.Contains(t, args[0], "false peers: 5")
-		},
-	).Once()
-	n.On("Status", mock.Anything).Run(
-		func(args mock.Arguments) {
-			assert.Contains(t, args[0], "true peers: 5")
-		},
-	).Once()
+	)
+
+	go func() {
+		<-ctx.Done()
+		assert.True(t, seenTrue)
+	}()
 }
 
 func TestMonitorHealth(t *testing.T) {
@@ -110,7 +99,7 @@ func TestMonitorHealth(t *testing.T) {
 	}
 	handlePeers(notifier, client)
 	handleIsHealthyChecks(notifier, client)
-	handleStatus(t, notifier)
+	handleStatus(ctx, t, notifier)
 
 	notifier.On("Info", mock.Anything).Run(
 		func(args mock.Arguments) {
@@ -121,7 +110,6 @@ func TestMonitorHealth(t *testing.T) {
 	notifier.On("Alert", mock.Anything).Run(
 		func(args mock.Arguments) {
 			assert.Contains(t, args[0], "not healthy: isHealthy=false for")
-			time.Sleep(2 * time.Millisecond) // ensure all calls made
 			cancel()
 		},
 	).Once()
