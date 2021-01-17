@@ -27,6 +27,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/patrick-ogrady/snowplow/pkg/avalanchego"
+	"github.com/patrick-ogrady/snowplow/pkg/metrics"
 	"github.com/patrick-ogrady/snowplow/pkg/notifier"
 	"github.com/patrick-ogrady/snowplow/pkg/utils"
 )
@@ -77,15 +78,21 @@ func runFunc(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return fmt.Errorf("%w: could not calculate NodeID", err)
 	}
+	printableNodeID := utils.PrintableNodeID(nodeID)
 
-	notifier, err := notifier.NewNotifier(utils.PrintableNodeID(nodeID))
+	notifier, err := notifier.NewNotifier(printableNodeID)
 	if err != nil {
 		fmt.Printf("notifier disabled: %s\n", err.Error())
 	}
 
+	writer, err := metrics.NewMetricWriter(printableNodeID)
+	if err != nil {
+		fmt.Printf("metrics disabled: %s\n", err.Error())
+	}
+
 	// Run avalanchego
 	notifier.Info("starting")
-	runErr := avalanchego.Run(Context, utils.PrintableNodeID(nodeID), notifier)
+	runErr := avalanchego.Run(Context, printableNodeID, notifier, writer)
 	if runErr == nil || (runErr != nil && SignalReceived) {
 		notifier.Info("stopping")
 		return nil

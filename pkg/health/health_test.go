@@ -91,6 +91,7 @@ func handleStatus(ctx context.Context, t *testing.T, n *mocks.Notifier) {
 func TestMonitorHealth(t *testing.T) {
 	notifier := &mocks.Notifier{}
 	client := &mocks.Client{}
+	metricWriter := &mocks.MetricWriter{}
 	ctx := context.Background()
 	ctx, cancel := context.WithCancel(ctx)
 
@@ -114,10 +115,11 @@ func TestMonitorHealth(t *testing.T) {
 		},
 	).Once()
 
-	m := NewMonitor(notifier, client, 10*time.Millisecond, 15*time.Millisecond, 30*time.Millisecond, 5)
+	m := NewMonitor(notifier, client, metricWriter, 10*time.Millisecond, 15*time.Millisecond, 30*time.Millisecond, 5)
 	m.MonitorHealth(ctx)
 
 	time.Sleep(500 * time.Millisecond)
 	client.AssertExpectations(t)
 	notifier.AssertExpectations(t)
+	metricWriter.AssertExpectations(t)
 }
