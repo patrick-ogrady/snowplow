@@ -91,5 +91,6 @@ COPY --from=snowplow \
 
 EXPOSE 9650
 EXPOSE 9651
+EXPOSE 8080
 
 ENTRYPOINT ["/app/snowplow", "run"]

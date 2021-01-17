@@ -53,6 +53,7 @@ run-mainnet:
 		-v ${WORKDIR}/.avalanchego:/root/.avalanchego \
 		-p 9650:9650 \
 		-p 9651:9651 \
+		-p 8080:8080 \
 		${DOCKER_TAG}
 
 mocks:

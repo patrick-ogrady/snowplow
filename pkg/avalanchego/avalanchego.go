@@ -28,6 +28,7 @@ import (
 	"github.com/patrick-ogrady/snowplow/pkg/client"
 	"github.com/patrick-ogrady/snowplow/pkg/health"
 	"github.com/patrick-ogrady/snowplow/pkg/notifier"
+	"github.com/patrick-ogrady/snowplow/pkg/server"
 )
 
 const (
@@ -39,6 +40,8 @@ const (
 	statusInterval     = 1 * time.Hour
 	unhealthyThreshold = 1 * time.Minute
 	minPeers           = 400
+
+	healthPort = 8080
 )
 
 // Run starts an avalanchego node.
@@ -65,6 +68,7 @@ func Run(ctx context.Context, nodeID string, notifier *notifier.Notifier) error 
 	// notifications as needed
 	m := health.NewMonitor(notifier, client.NewClient(), healthInterval, statusInterval, unhealthyThreshold, minPeers)
 	go m.MonitorHealth(ctx)
+	go server.StartServer(ctx, "health", m, healthPort)
 
 	return cmd.Run()
 }
