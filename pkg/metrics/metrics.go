@@ -110,7 +110,7 @@ func (w *MetricWriter) writeInt64(ctx context.Context, metric string, num int64)
 	defer w.lastWriteMutex.Unlock()
 
 	v, ok := w.lastWrite[metric]
-	if ok && time.Since(v) > minMetricGap {
+	if ok && time.Since(v) < minMetricGap {
 		return nil
 	}
 
