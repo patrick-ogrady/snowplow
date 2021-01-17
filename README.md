@@ -141,7 +141,9 @@ _To use Docker on Google Cloud, you may need to prepend `sudo` to this command._
 
 ### Start Node
 This command starts a Docker container that starts `avalanchego` and
-the health monitoring mechanism from `snowplow`.
+the health monitoring mechanism from `snowplow`. Making a request
+to port `8080` will return a `200` status when the validator is considered
+healthy.
 
 ```text
 make run-mainnet

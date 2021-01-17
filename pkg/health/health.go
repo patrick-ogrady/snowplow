@@ -22,6 +22,7 @@ package health
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"sync"
 	"time"
 
@@ -234,4 +235,17 @@ func (m *Monitor) MonitorHealth(
 			m.completeHealthMutex.Unlock()
 		}
 	}
+}
+
+// ServeHTTP serves a health check response on all paths.
+func (m *Monitor) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	unhealthyStatus := m.computeHealth()
+	if len(unhealthyStatus) > 0 {
+		w.WriteHeader(http.StatusServiceUnavailable)
+		_, _ = w.Write([]byte(unhealthyStatus))
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write([]byte("healthy"))
 }
