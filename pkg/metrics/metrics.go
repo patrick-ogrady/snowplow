@@ -100,6 +100,7 @@ func NewMetricWriter(nodeID string) (*MetricWriter, error) {
 		projectID:  project,
 		zone:       zone,
 		instanceID: instance,
+		lastWrite:  make(map[string]time.Time),
 	}, nil
 }
 
