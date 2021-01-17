@@ -100,6 +100,7 @@ func NewMetricWriter(nodeID string) (*MetricWriter, error) {
 		projectID:  project,
 		zone:       zone,
 		instanceID: instance,
+		nodeID:     nodeID,
 		lastWrite:  make(map[string]time.Time),
 	}, nil
 }
@@ -126,7 +127,7 @@ func (w *MetricWriter) writeInt64(ctx context.Context, metric string, num int64)
 			Metric: &metricpb.Metric{
 				Type: metric,
 				Labels: map[string]string{
-					"nodeId": w.nodeID,
+					"nodeID": w.nodeID,
 				},
 			},
 			Resource: &monitoredres.MonitoredResource{
@@ -160,5 +161,9 @@ func (w *MetricWriter) writeInt64(ctx context.Context, metric string, num int64)
 
 // Peers writes the peerCount to metrics.
 func (w *MetricWriter) Peers(ctx context.Context, peerCount uint64) error {
+	if w == nil {
+		return nil
+	}
+
 	return w.writeInt64(ctx, peersMetric, int64(peerCount))
 }
