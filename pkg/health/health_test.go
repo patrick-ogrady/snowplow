@@ -123,10 +123,10 @@ func TestMonitorHealth(t *testing.T) {
 		},
 	).Once()
 
-	m := NewMonitor(notifier, client, metricWriter, 10*time.Millisecond, 15*time.Millisecond, 30*time.Millisecond, 5)
+	m := NewMonitor(notifier, client, metricWriter, 100*time.Millisecond, 150*time.Millisecond, 300*time.Millisecond, 5)
 	m.MonitorHealth(ctx)
 
-	time.Sleep(500 * time.Millisecond)
+	time.Sleep(5 * time.Second)
 	client.AssertExpectations(t)
 	notifier.AssertExpectations(t)
 	metricWriter.AssertExpectations(t)
