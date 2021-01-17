@@ -24,6 +24,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 
@@ -83,10 +84,12 @@ func NewMetricWriter(nodeID string) (*MetricWriter, error) {
 		return nil, fmt.Errorf("%w: could not load project id", err)
 	}
 
-	zone, err := loadStringAttribute(zoneURL)
+	extendedZone, err := loadStringAttribute(zoneURL)
 	if err != nil {
 		return nil, fmt.Errorf("%w: could not load zone", err)
 	}
+	zoneComponents := strings.Split(extendedZone, "/")
+	zone := zoneComponents[len(zoneComponents)-1]
 
 	instance, err := loadStringAttribute(instanceURL)
 	if err != nil {
