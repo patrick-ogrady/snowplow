@@ -60,16 +60,24 @@ func handleIsHealthyChecks(n *mocks.Notifier, c *mocks.Client) {
 	c.On("IsHealthy").Return(false, nil).Once()
 }
 
-func handlePeers(n *mocks.Notifier, c *mocks.Client) {
+func handlePeers(n *mocks.Notifier, c *mocks.Client, mw *mocks.MetricWriter) {
 	c.On("Peers").Return(uint64(0), nil).Once()
+	mw.On("Peers", mock.Anything, uint64(0)).Return(nil).Once()
 	c.On("Peers").Return(uint64(2), nil).Once()
+	mw.On("Peers", mock.Anything, uint64(2)).Return(nil).Once()
 	c.On("Peers").Return(uint64(3), nil).Once()
+	mw.On("Peers", mock.Anything, uint64(3)).Return(nil).Once()
 	c.On("Peers").Return(uint64(4), nil).Once()
+	mw.On("Peers", mock.Anything, uint64(4)).Return(nil).Once()
 	c.On("Peers").Return(uint64(5), nil).Once()
+	mw.On("Peers", mock.Anything, uint64(5)).Return(nil).Once()
 	n.On("Info", "connected peers (5) >= 5").Once()
 	c.On("Peers").Return(uint64(5), nil).Once()
+	mw.On("Peers", mock.Anything, uint64(5)).Return(nil).Once()
 	c.On("Peers").Return(uint64(5), nil).Once()
+	mw.On("Peers", mock.Anything, uint64(5)).Return(nil).Once()
 	c.On("Peers").Return(uint64(5), nil).Once()
+	mw.On("Peers", mock.Anything, uint64(5)).Return(nil).Once()
 }
 
 func handleStatus(ctx context.Context, t *testing.T, n *mocks.Notifier) {
@@ -91,13 +99,14 @@ func handleStatus(ctx context.Context, t *testing.T, n *mocks.Notifier) {
 func TestMonitorHealth(t *testing.T) {
 	notifier := &mocks.Notifier{}
 	client := &mocks.Client{}
+	metricWriter := &mocks.MetricWriter{}
 	ctx := context.Background()
 	ctx, cancel := context.WithCancel(ctx)
 
 	for _, chain := range chains {
 		handleIsBootstrappedChecks(t, notifier, client, chain)
 	}
-	handlePeers(notifier, client)
+	handlePeers(notifier, client, metricWriter)
 	handleIsHealthyChecks(notifier, client)
 	handleStatus(ctx, t, notifier)
 
@@ -110,14 +119,16 @@ func TestMonitorHealth(t *testing.T) {
 	notifier.On("Alert", mock.Anything).Run(
 		func(args mock.Arguments) {
 			assert.Contains(t, args[0], "not healthy: isHealthy=false for")
+			time.Sleep(10 * time.Millisecond)
 			cancel()
 		},
 	).Once()
 
-	m := NewMonitor(notifier, client, 10*time.Millisecond, 15*time.Millisecond, 30*time.Millisecond, 5)
+	m := NewMonitor(notifier, client, metricWriter, 100*time.Millisecond, 150*time.Millisecond, 300*time.Millisecond, 5)
 	m.MonitorHealth(ctx)
 
-	time.Sleep(500 * time.Millisecond)
+	time.Sleep(5 * time.Second)
 	client.AssertExpectations(t)
 	notifier.AssertExpectations(t)
+	metricWriter.AssertExpectations(t)
 }

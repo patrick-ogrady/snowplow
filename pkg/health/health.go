@@ -47,11 +47,17 @@ type Client interface {
 	Peers() (uint64, error)
 }
 
+// MetricWriter ...
+type MetricWriter interface {
+	Peers(context.Context, uint64) error
+}
+
 // Monitor tracks the health
 // of an avalanche validator.
 type Monitor struct {
-	notifier Notifier
-	client   Client
+	notifier     Notifier
+	client       Client
+	metricWriter MetricWriter
 
 	healthInterval time.Duration
 	statusInterval time.Duration
@@ -76,6 +82,7 @@ type Monitor struct {
 func NewMonitor(
 	notifier Notifier,
 	client Client,
+	metricWriter MetricWriter,
 	healthInterval time.Duration,
 	statusInterval time.Duration,
 	unhealthyThreshold time.Duration,
@@ -84,6 +91,7 @@ func NewMonitor(
 	return &Monitor{
 		notifier:           notifier,
 		client:             client,
+		metricWriter:       metricWriter,
 		healthInterval:     healthInterval,
 		unhealthyThreshold: unhealthyThreshold,
 		statusInterval:     statusInterval,
@@ -148,6 +156,10 @@ func (m *Monitor) checkPeers(
 		if err != nil {
 			m.notifier.Alert(fmt.Sprintf("Peers failed: %s", err.Error()))
 			continue
+		}
+
+		if err := m.metricWriter.Peers(ctx, peers); err != nil {
+			m.notifier.Alert(fmt.Sprintf("Peers metric writing failed: %s", err.Error()))
 		}
 
 		m.numPeers = peers

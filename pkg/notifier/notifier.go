@@ -79,7 +79,6 @@ func NewNotifier(nodeID string) (*Notifier, error) {
 }
 
 func (n *Notifier) sendMessage(kind string, message string) {
-	fmt.Printf("NOTIFIER [%s]: %s\n", kind, message)
 	if n == nil {
 		return
 	}
@@ -91,7 +90,7 @@ func (n *Notifier) sendMessage(kind string, message string) {
 		nil,
 	)
 	if err != nil {
-		fmt.Printf("NOTIFIER [ERROR]: %s\n", err.Error())
+		fmt.Printf("notifier error: %s\n", err.Error())
 	}
 }
 

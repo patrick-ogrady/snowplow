@@ -27,6 +27,7 @@ import (
 
 	"github.com/patrick-ogrady/snowplow/pkg/client"
 	"github.com/patrick-ogrady/snowplow/pkg/health"
+	"github.com/patrick-ogrady/snowplow/pkg/metrics"
 	"github.com/patrick-ogrady/snowplow/pkg/notifier"
 	"github.com/patrick-ogrady/snowplow/pkg/server"
 )
@@ -45,7 +46,7 @@ const (
 )
 
 // Run starts an avalanchego node.
-func Run(ctx context.Context, nodeID string, notifier *notifier.Notifier) error {
+func Run(ctx context.Context, nodeID string, notifier *notifier.Notifier, metricWriter *metrics.MetricWriter) error {
 	cmd := exec.Command(
 		avalanchegoBin,
 		"--config-file",
@@ -66,7 +67,15 @@ func Run(ctx context.Context, nodeID string, notifier *notifier.Notifier) error 
 
 	// Periodically check health and send
 	// notifications as needed
-	m := health.NewMonitor(notifier, client.NewClient(), healthInterval, statusInterval, unhealthyThreshold, minPeers)
+	m := health.NewMonitor(
+		notifier,
+		client.NewClient(),
+		metricWriter,
+		healthInterval,
+		statusInterval,
+		unhealthyThreshold,
+		minPeers,
+	)
 	go m.MonitorHealth(ctx)
 	go server.StartServer(ctx, "health", m, healthPort)
 

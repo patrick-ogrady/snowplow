@@ -151,6 +151,29 @@ make run-mainnet
 
 _To use Docker on Google Cloud, you may need to prepend `sudo` to this command._
 
+#### Google Cloud Monitoring
+By default, `snowplow` will upload relevant metrics to Google Cloud
+Monitoring when deployed on Google Cloud (no config file needed).
+
+## Local Deployment
+### Build Node
+This command builds a Docker image containing `avalanchego` and
+the health monitoring mechanism from `snowplow`.
+
+```text
+make docker-build
+```
+
+### Start Node
+This command starts a Docker container that starts `avalanchego` and
+the health monitoring mechanism from `snowplow`. Making a request
+to port `8080` will return a `200` status when the validator is considered
+healthy.
+
+```text
+make run-mainnet
+```
+
 #### Twilio Notifications
 To enable text message alerts from [Twilio](https://www.twilio.com/), you must
 populate a `yaml` file at `.avalanchego/.snowplow.yaml` (in the same directory
