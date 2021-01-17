@@ -242,10 +242,10 @@ func (m *Monitor) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	unhealthyStatus := m.computeHealth()
 	if len(unhealthyStatus) > 0 {
 		w.WriteHeader(http.StatusServiceUnavailable)
-		w.Write([]byte(unhealthyStatus))
+		_, _ = w.Write([]byte(unhealthyStatus))
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("healthy"))
+	_, _ = w.Write([]byte("healthy"))
 }
