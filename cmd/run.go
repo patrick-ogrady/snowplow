@@ -85,9 +85,11 @@ func runFunc(cmd *cobra.Command, args []string) error {
 		fmt.Printf("notifier disabled: %s\n", err.Error())
 	}
 
-	writer, err := metrics.NewMetricWriter(printableNodeID)
+	writer, err := metrics.NewMetricWriter(Context, printableNodeID)
 	if err != nil {
 		fmt.Printf("metrics disabled: %s\n", err.Error())
+	} else {
+		defer writer.Close()
 	}
 
 	// Run avalanchego
