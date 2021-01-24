@@ -46,6 +46,8 @@ const (
 
 // MetricWriter writes metrics to Google Cloud Monitoring.
 type MetricWriter struct {
+	client *monitoring.MetricClient
+
 	projectID  string
 	instanceID string
 	zone       string
@@ -78,7 +80,7 @@ func loadStringAttribute(url string) (string, error) {
 }
 
 // NewMetricWriter creates a new *MetricWriter.
-func NewMetricWriter(nodeID string) (*MetricWriter, error) {
+func NewMetricWriter(ctx context.Context, nodeID string) (*MetricWriter, error) {
 	project, err := loadStringAttribute(projectURL)
 	if err != nil {
 		return nil, fmt.Errorf("%w: could not load project id", err)
@@ -96,13 +98,24 @@ func NewMetricWriter(nodeID string) (*MetricWriter, error) {
 		return nil, fmt.Errorf("%w: could not load instance id", err)
 	}
 
+	client, err := monitoring.NewMetricClient(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("%w: unable to create metric client", err)
+	}
+
 	return &MetricWriter{
+		client:     client,
 		projectID:  project,
 		zone:       zone,
 		instanceID: instance,
 		nodeID:     nodeID,
 		lastWrite:  make(map[string]time.Time),
 	}, nil
+}
+
+// Close closes all connections held by the *MetricWriter.
+func (w *MetricWriter) Close() error {
+	return w.client.Close()
 }
 
 func (w *MetricWriter) writeInt64(ctx context.Context, metric string, num int64) error {
@@ -114,10 +127,6 @@ func (w *MetricWriter) writeInt64(ctx context.Context, metric string, num int64)
 		return nil
 	}
 
-	c, err := monitoring.NewMetricClient(ctx)
-	if err != nil {
-		return err
-	}
 	now := &timestamp.Timestamp{
 		Seconds: time.Now().Unix(),
 	}
@@ -151,7 +160,7 @@ func (w *MetricWriter) writeInt64(ctx context.Context, metric string, num int64)
 		}},
 	}
 
-	if err := c.CreateTimeSeries(ctx, req); err != nil {
+	if err := w.client.CreateTimeSeries(ctx, req); err != nil {
 		return fmt.Errorf("%w: could not write time series value", err)
 	}
 
