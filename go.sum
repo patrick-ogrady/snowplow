@@ -34,8 +34,8 @@ github.com/alecthomas/units v0.0.0-20190717042225-c3de453c63f4/go.mod h1:ybxpYRF
 github.com/armon/circbuf v0.0.0-20150827004946-bbbad097214e/go.mod h1:3U/XgcO3hCbHZ8TKRvWD2dDTCfh9M9ya+I9JpbB7O8o=
 github.com/armon/go-metrics v0.0.0-20180917152333-f0300d1749da/go.mod h1:Q73ZrmVTwzkszR9V5SSuryQ31EELlFMUz1kKyl939pY=
 github.com/armon/go-radix v0.0.0-20180808171621-7fddfc383310/go.mod h1:ufUuZ+zHj4x4TnLV4JWEpy2hxWSpsRywHrMgIH9cCH8=
-github.com/ava-labs/avalanchego v1.1.3 h1:cRtZ4Qug63zMDadUXxKFHiWDSBNSkrmp+b504qHSV7A=
-github.com/ava-labs/avalanchego v1.1.3/go.mod h1:Zm/+dPIz58K53OazgITQ8Lvk6PcesV4w/MdZ+3y1ygA=
+github.com/ava-labs/avalanchego v1.1.4 h1:ZlFomUs0Njh64ijTX2lzGxFbXnNZZj7wfp/GjGCKM4E=
+github.com/ava-labs/avalanchego v1.1.4/go.mod h1:ws5ncQjbLgsRIGotzy9BR487A8PxJryJNg0+gr91uNc=
 github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973/go.mod h1:Dwedo/Wpr24TaqPxmxbtue+5NUziq4I4S80YR8gNf3Q=
 github.com/beorn7/perks v1.0.0/go.mod h1:KWe93zE9D1o94FZ5RNwFwVgaQK1VOXiVxmqh+CedLV8=
 github.com/beorn7/perks v1.0.1 h1:VlbKKnNfV8bJzeqoa4cOKqO6bYr3WgKZxO8Z16+hsOM=
@@ -197,6 +197,7 @@ github.com/jstemmer/go-junit-report v0.0.0-20190106144839-af01ea7f8024/go.mod h1
 github.com/jtolds/gls v4.20.0+incompatible h1:xdiiI2gbIgH/gLH7ADydsJ1uDOEzR8yvV7C0MuV77Wo=
 github.com/jtolds/gls v4.20.0+incompatible/go.mod h1:QJZ7F/aHp+rZTRtaJ1ow/lLfFfVYBRgL+9YlvaHOwJU=
 github.com/julienschmidt/httprouter v1.2.0/go.mod h1:SYymIcj16QtmaHHD7aYtjjsJG7VTCxuUUipMqKk8s4w=
+github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0/go.mod h1:1NbS8ALrpOvjt0rHPNLyCIeMtbizbir8U//inJ+zuB8=
 github.com/kevinburke/go-types v0.0.0-20201208005256-aee49f568a20 h1:Tux1t20gPWp4zkjCCdv2rLAwp+T3jCEROsEuvXp50FI=
 github.com/kevinburke/go-types v0.0.0-20201208005256-aee49f568a20/go.mod h1:/Pk5i/SqYdYv1cie5wGwoZ4P6TpgMi+Yf58mtJSHdOw=
 github.com/kevinburke/go.uuid v1.2.0 h1:+1qP8NdkJfgOSTrrrUuA7h0djr1VY77HFXYjR+zUcUo=
