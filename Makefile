@@ -13,7 +13,7 @@ DOCKER_IMAGE        ?= ${DOCKER_ORG}/${PROJECT}
 DOCKER_LABEL        ?= latest
 DOCKER_TAG          ?= ${DOCKER_IMAGE}:${DOCKER_LABEL}
 AVALANCHE_VERSION   ?= v1.2.0
-SNOWPLOW_VERSION 		?= v0.0.6
+SNOWPLOW_VERSION 		?= v0.0.7
 
 build:
 	go build
