@@ -5,7 +5,7 @@ go 1.13
 require (
 	cloud.google.com/go v0.46.3
 	cloud.google.com/go/storage v1.0.0
-	github.com/ava-labs/avalanchego v1.1.4
+	github.com/ava-labs/avalanchego v1.2.0
 	github.com/cheggaaa/pb/v3 v3.0.5
 	github.com/fatih/color v1.10.0 // indirect
 	github.com/golang/protobuf v1.4.2
