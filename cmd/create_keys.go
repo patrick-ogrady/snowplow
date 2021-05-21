@@ -57,7 +57,7 @@ func createFunc(cmd *cobra.Command, args []string) error {
 	}
 
 	// Generate Staking Key
-	if err := staking.GenerateStakingKeyCert(stakingKeyPath, stakingCertPath); err != nil {
+	if err := staking.InitNodeStakingKeyPair(stakingKeyPath, stakingCertPath); err != nil {
 		return fmt.Errorf("%w: could not create staking credentials", err)
 	}
 
