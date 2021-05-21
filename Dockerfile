@@ -69,15 +69,26 @@ RUN apt-get update -y && \
 
 WORKDIR /app
 
-# Install avalanche binaries
+# Install avalanche daemon
 COPY --from=avalanche \
   /go/src/github.com/ava-labs/avalanchego/build/avalanchego \
   /app/avalanchego
 
-# Install plugins
+# Install pre-upgrade
 COPY --from=avalanche \
-  /go/src/github.com/ava-labs/avalanchego/build/plugins/* \
-  /app/plugins/
+  /go/src/github.com/ava-labs/avalanchego/build/avalanchego-preupgrade/avalanchego-process \
+  /app/avalanchego-preupgrade/avalanchego-process
+COPY --from=avalanche \
+  /go/src/github.com/ava-labs/avalanchego/build/avalanchego-preupgrade/plugins/evm \
+  /app/avalanchego-preupgrade/plugins/evm
+
+# Install latest
+COPY --from=avalanche \
+  /go/src/github.com/ava-labs/avalanchego/build/avalanchego-latest/avalanchego-process \
+  /app/avalanchego-latest/avalanchego-process
+COPY --from=avalanche \
+  /go/src/github.com/ava-labs/avalanchego/build/avalanchego-latest/plugins/evm \
+  /app/avalanchego-latest/plugins/evm
 
 # Install avalanche snowplow
 COPY --from=snowplow \
