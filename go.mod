@@ -5,10 +5,10 @@ go 1.13
 require (
 	cloud.google.com/go v0.46.3
 	cloud.google.com/go/storage v1.0.0
-	github.com/ava-labs/avalanchego v1.4.4
+	github.com/ava-labs/avalanchego v1.4.5
 	github.com/cheggaaa/pb/v3 v3.0.5
 	github.com/fatih/color v1.10.0 // indirect
-	github.com/golang/protobuf v1.4.3
+	github.com/golang/protobuf v1.5.2
 	github.com/kevinburke/go-types v0.0.0-20201208005256-aee49f568a20 // indirect
 	github.com/kevinburke/go.uuid v1.2.0 // indirect
 	github.com/kevinburke/rest v0.0.0-20210106114233-22cd0577e450 // indirect
@@ -25,5 +25,4 @@ require (
 	golang.org/x/sync v0.0.0-20200625203802-6e8e738ad208 // indirect
 	golang.org/x/tools v0.0.0-20200117012304-6edc0a871e69 // indirect
 	google.golang.org/genproto v0.0.0-20200526211855-cb27e3aa2013
-	google.golang.org/protobuf v1.25.0 // indirect
 )
