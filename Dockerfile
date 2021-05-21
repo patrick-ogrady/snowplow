@@ -22,7 +22,7 @@
 # ------------------------------------------------------------------------------
 # Build avalanche
 # ------------------------------------------------------------------------------
-FROM golang:1.15 AS avalanche
+FROM golang:1.16 AS avalanche
 
 ARG AVALANCHE_VERSION
 
@@ -37,7 +37,7 @@ RUN git checkout $AVALANCHE_VERSION && \
 # ------------------------------------------------------------------------------
 # Build avalanche snowplow
 # ------------------------------------------------------------------------------
-FROM golang:1.15 AS snowplow
+FROM golang:1.16 AS snowplow
 
 ARG SNOWPLOW_VERSION
 
