@@ -5,7 +5,7 @@ go 1.13
 require (
 	cloud.google.com/go v0.46.3
 	cloud.google.com/go/storage v1.0.0
-	github.com/ava-labs/avalanchego v1.4.6
+	github.com/ava-labs/avalanchego v1.5.0
 	github.com/cheggaaa/pb/v3 v3.0.5
 	github.com/fatih/color v1.10.0 // indirect
 	github.com/golang/protobuf v1.5.2
@@ -21,8 +21,6 @@ require (
 	github.com/stretchr/testify v1.7.0
 	github.com/ttacon/builder v0.0.0-20170518171403-c099f663e1c2 // indirect
 	github.com/ttacon/libphonenumber v1.1.0 // indirect
-	golang.org/x/crypto v0.0.0-20200820211705-5c72a883971a // indirect
-	golang.org/x/sync v0.0.0-20200625203802-6e8e738ad208 // indirect
 	golang.org/x/tools v0.0.0-20200117012304-6edc0a871e69 // indirect
 	google.golang.org/genproto v0.0.0-20200526211855-cb27e3aa2013
 )

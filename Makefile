@@ -12,8 +12,8 @@ PROJECT             ?= snowplow
 DOCKER_IMAGE        ?= ${DOCKER_ORG}/${PROJECT}
 DOCKER_LABEL        ?= latest
 DOCKER_TAG          ?= ${DOCKER_IMAGE}:${DOCKER_LABEL}
-AVALANCHE_VERSION   ?= v1.4.6
-SNOWPLOW_VERSION 		?= v0.0.15
+AVALANCHE_VERSION   ?= v1.5.0
+SNOWPLOW_VERSION 		?= v0.0.16
 
 build:
 	go build
